@@ -1,0 +1,40 @@
+﻿
+@model List<RegistroAduanero.Entidades.Barco>
+
+@{
+    ViewData["Title"] = "Resultados de Barcos";
+}
+<h1>Resultados de Barcos</h1>
+
+@{
+    if (TempData["Mensaje"] != null)
+    {
+        <div class="alert alert-success" role="alert">
+            @TempData["Mensaje"]
+        </div>
+    }
+}
+<hr />
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Id Registro</th>
+            <th>Nombre del Barco</th>
+            <th>Antiguedad (años)</th>
+            <th>Tripulacion Máxima</th>
+            <th>Impuesto a Pagar ($)</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var barco in Model)
+        {
+            <tr>
+                <td>@barco.Id</td>
+                <td>@barco.Nombre</td>
+                <td>@barco.Antiguedad</td>
+                <td>@barco.TripulacionMaxima</td>
+                <td>@barco.Impuesto.ToString("C")</td>
+            </tr>
+        }
+    </tbody>
+</table>

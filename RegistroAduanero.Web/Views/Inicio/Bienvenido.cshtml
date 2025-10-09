@@ -1,0 +1,18 @@
+﻿@{
+    ViewData["Title"] = "Bienvenido";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+
+<div class="jumbotron">
+    <h1 class="display-4">¡Bienvenido al Sistema de Registro Aduanero!</h1>
+    <p class="lead">Este sistema está diseñado para facilitar el registro y la gestión de barcos en el puerto, asegurando que todos los datos necesarios se recopilen de manera eficiente y precisa.</p>
+    <hr class="my-4">
+    <p>Con esta aplicación, podrás registrar nuevos barcos, calcular los impuestos correspondientes según su antigüedad y tripulación máxima, y consultar los registros existentes de manera rápida y sencilla.</p>
+    <p class="lead">
+        <a class="btn btn-primary btn-lg" asp-controller="Barcos" asp-action="Registrar" role="button">Registrar un Nuevo Barco</a>
+        <a class="btn btn-secondary btn-lg" asp-controller="Barcos" asp-action="Resultados" role="button">Ver Resultados de Barcos</a>
+    </p>
+</div>
+<p>¡Gracias por utilizar nuestro sistema!</p>
