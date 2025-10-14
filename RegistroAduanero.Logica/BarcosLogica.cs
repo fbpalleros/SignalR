@@ -32,10 +32,10 @@ public class BarcosLogica : IBarcosLogica
 
 
         barco.Impuesto = (barco.Antiguedad * 1000) + (barco.TripulacionMaxima * 500);
-        barco.Id = _barcos.Max(b => b.Id) + 1;
+        //barco.Id = _barcos.Max(b => b.Id) + 1;
         _context.Barcos.Add(barco);
         _context.SaveChanges();
-        //_barcos.Add(barco);
+        _barcos.Add(barco);
     }
 
     public List<Barco> obtenerTodos()
