@@ -8,26 +8,97 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/RegistroAduanero.Web.styles.css" asp-append-version="true" />
+    <style>
+        body {
+          margin: 0;
+          background-color: #0d0d0d;
+          color: #fff;
+          font-family: 'Segoe UI', sans-serif;
+        }
+
+        /* ===== NAVBAR ===== */
+        nav {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          background-color: #0a0a0a;
+          padding: 12px 40px;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+        }
+
+        .nav-left {
+          display: flex;
+          align-items: center;
+          gap: 32px;
+        }
+
+        .logo {
+          font-weight: 700;
+          font-size: 1.3rem;
+        }
+
+        .nav-links {
+          display: flex;
+          align-items: center;
+          gap: 20px;
+        }
+
+        .nav-links a {
+          color: #e5e5e5;
+          text-decoration: none;
+          font-weight: 500;
+          padding: 6px 12px;
+          border-radius: 6px;
+          transition: background-color 0.3s;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+          background-color: #1a1a1a;
+          color: #fff;
+        }
+
+        .nav-right {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+        }
+
+        .username {
+          font-size: 0.95rem;
+          color: #ccc;
+        }
+
+        .btn-logout {
+          background-color: transparent;
+          color: #fff;
+          border: 1px solid #444;
+          border-radius: 6px;
+          padding: 6px 12px;
+          cursor: pointer;
+          transition: background-color 0.3s;
+        }
+
+        .btn-logout:hover {
+          background-color: #ff4444;
+          border-color: #ff4444;
+        }
+    </style>
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Inicio" asp-action="Bienvenido">RegistroAduanero</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Barcos" asp-action="Registrar">Registrar Barco</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Barcos" asp-action="Resultados">Resultados</a>
-                        </li>
-                    </ul>
+        <nav>
+            <div class="nav-left">
+                <div class="logo">nombre de la app</div>
+                <div class="nav-links">
+                    <a href="#" class="active">Inicio</a>
+                    <a href="#">Pedidos Ya</a>
+                    <a href="#">Promiedos</a>
                 </div>
+            </div>
+            <div class="nav-right">
+                <div class="username">martinmeza.t22</div>
+                <button class="btn-logout">Salir</button>
             </div>
         </nav>
     </header>
@@ -39,7 +110,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container text-center">
-            &copy; 2025 - Facundo Baltasar Palleros - 41.894.253
+            Footer
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
