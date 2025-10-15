@@ -4,5 +4,8 @@
       "Default": "Information",
       "Microsoft.AspNetCore": "Warning"
     }
+  },
+  "ConnectionStrings": {
+    "BarcosConnection": "COPIA DE appsettings.json O USA TU CONNECTION STRING LOCAL"
   }
 }
