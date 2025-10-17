@@ -1,34 +1,38 @@
 ﻿<body>
-
     <!-- CONTENEDOR PRINCIPAL -->
     <div class="main-container">
         <h1>Selecciona tu servicio</h1>
 
-        <!-- CARD 1 -->
-        <a class="card" href="Barcos/Registrar" style="display:block">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/3/3d/PedidosYa_logo.png" alt="Pedidos Ya">
-            <div class="card-content">
-                <h2>Pedidos Ya</h2>
-                <p>Ordena tu comida favorita</p>
-            </div>
-        </a>
+        <div class="cards">
+            <!-- CARD 1 -->
+            <a class="card" href="Promiedos/PedidosYaLobby">
+                <img src="~/img/pedidosYa.jpeg" alt="Pedidos Ya">
+                <div class="card-content">
+                    <h2>Pedidos Ya</h2>
+                    <p>Ordena tu comida favorita</p>
+                </div>
+            </a>
 
-        <!-- CARD 2 -->
-        <a class="card" href="Barcos/Resultados" style="display:block">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/f/f3/Estadio_de_f%C3%BAtbol.jpg" alt="Promiedos">
-            <div class="card-content">
-                <h2>Promiedos</h2>
-                <p>Resultados y noticias de fútbol</p>
-            </div>
-        </a>
+            <!-- CARD 2 -->
+            <a class="card" href="Promiedos/PromiedosLobby">
+                <img src="~/img/promiedos.jpg" alt="Promiedos">
+                <div class="card-content">
+                    <h2>Promiedos</h2>
+                    <p>Resultados y noticias de fútbol</p>
+                </div>
+            </a>
+        </div>
     </div>
-    
+
     <style>
         body {
             margin: 0;
             background-color: #0d0d0d;
             color: #fff;
             font-family: 'Segoe UI', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
         /* ===== NAVBAR ===== */
@@ -101,8 +105,13 @@
 
         /* ===== CONTENEDOR PRINCIPAL ===== */
         .main-container {
+            flex: 1; /* Ocupa todo el espacio restante entre nav y footer */
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Centra verticalmente */
+            align-items: center; /* Centra horizontalmente */
             text-align: center;
-            padding: 60px 20px;
+            padding: 40px 20px;
         }
 
             .main-container h1 {
@@ -114,17 +123,23 @@
         .cards {
             display: flex;
             justify-content: center;
+            align-items: stretch;
             gap: 40px;
             flex-wrap: wrap;
+            width: 100%;
+            max-width: 900px;
         }
 
         .card {
             background-color: #1a1a1a;
             border-radius: 12px;
             overflow: hidden;
-            width: 320px;
+            flex: 1 1 45%; /* Las dos ocupan el ancho de la pantalla (con margen) */
+            max-width: 420px;
             cursor: pointer;
             transition: transform 0.3s, box-shadow 0.3s;
+            display: flex;
+            flex-direction: column;
         }
 
             .card:hover {
@@ -134,13 +149,14 @@
 
             .card img {
                 width: 100%;
-                height: 200px;
+                height: 250px;
                 object-fit: cover;
             }
 
         .card-content {
             padding: 20px;
             text-align: left;
+            flex-grow: 1;
         }
 
             .card-content h2 {
@@ -154,6 +170,5 @@
                 margin: 0;
                 font-size: 0.95rem;
             }
-
     </style>
 </body>

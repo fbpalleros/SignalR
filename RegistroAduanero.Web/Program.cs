@@ -32,7 +32,7 @@ app.MapStaticAssets();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Inicio}/{action=Bienvenido}/{id?}")
+    pattern: "{controller=Inicio}/{action=Home}/{id?}")
     .WithStaticAssets();
 
 

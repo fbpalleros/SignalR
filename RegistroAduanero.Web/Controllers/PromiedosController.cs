@@ -4,24 +4,33 @@ using RegistroAduanero.Logica;
 
 namespace RegistroAduanero.Web.Controllers
 {
-    public class BarcosController : Controller
+    public class PromiedosController : Controller
     {
 
 
         private readonly IBarcosLogica barcosLogica;
 
-        public BarcosController(IBarcosLogica barcosLogica)
+        public PromiedosController(IBarcosLogica barcosLogica)
         {
             this.barcosLogica = barcosLogica;
         }
 
-        public IActionResult Registrar()
+        public IActionResult Promiedos()
+        {
+            return View();
+        }
+        public IActionResult PromiedosLobby()
+        {
+            return View();
+        }
+
+        public IActionResult PedidosYaLobby()
         {
             return View();
         }
 
         [HttpPost]
-        public IActionResult Registrar(Barco barco)
+        public IActionResult Promiedos(Barco barco)
         {
 
 
@@ -29,12 +38,12 @@ namespace RegistroAduanero.Web.Controllers
             {
                 barcosLogica.registrarBarco(barco);
                 TempData["Mensaje"] = $"El barco {barco.Nombre} fue registrado con un impuesto de {barco.Impuesto:C2}";
-                return RedirectToAction("Resultados");
+                return RedirectToAction("PedidosYa");
             }
             return View(barco);
         }
 
-        public IActionResult Resultados()
+        public IActionResult PedidosYa()
         {
             var barcos = barcosLogica.obtenerTodos();
             return View(barcos);
