@@ -4,7 +4,7 @@ namespace RegistroAduanero.Web.Controllers
 {
     public class InicioController : Controller
     {
-        public IActionResult Bienvenido()
+        public IActionResult Home()
         {
             return View();
         }

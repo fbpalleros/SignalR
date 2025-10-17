@@ -1,0 +1,216 @@
+﻿@{
+    ViewData["Title"] = "Promiedos";
+}
+
+<style>
+    .promiedos-container {
+        display: flex;
+        min-height: 100vh;
+        background-color: #013220;
+        color: #fff;
+        font-family: 'Segoe UI', sans-serif;
+        padding-bottom: 40px;
+    }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+        width: 240px;
+        background-color: #012b1b;
+        padding: 20px;
+        box-shadow: 2px 0 6px rgba(0, 0, 0, 0.4);
+    }
+
+        .sidebar h2 {
+            color: #9aff9a;
+            font-size: 1rem;
+            margin-top: 0;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+
+            .sidebar ul li {
+                padding: 8px 0;
+                border-bottom: 1px solid #044b31;
+            }
+
+                .sidebar ul li a {
+                    color: #fff;
+                    text-decoration: none;
+                    font-size: 0.95rem;
+                    display: block;
+                    transition: color 0.3s;
+                }
+
+                    .sidebar ul li a:hover {
+                        color: #00ff7f;
+                    }
+
+    /* ===== MAIN ===== */
+    .main-content {
+        flex: 1;
+        padding: 20px 40px;
+    }
+
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+        .header h1 {
+            font-size: 1.5rem;
+            color: #9aff9a;
+        }
+
+    .partidos-container {
+        background-color: #024a2e;
+        border-radius: 10px;
+        margin-top: 20px;
+        overflow: hidden;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .titulo-liga {
+        background-color: #013d27;
+        padding: 12px 20px;
+        font-weight: bold;
+        border-bottom: 2px solid #00cc66;
+    }
+
+    .partido {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 20px;
+        border-bottom: 1px solid #036b47;
+    }
+
+        .partido:last-child {
+            border-bottom: none;
+        }
+
+    .equipo {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 40%;
+    }
+
+        .equipo img {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background-color: #fff;
+        }
+
+    .marcador {
+        font-weight: bold;
+        font-size: 1.1rem;
+        width: 10%;
+        text-align: center;
+    }
+
+    .estado {
+        color: #aaa;
+        font-size: 0.85rem;
+        width: 10%;
+        text-align: right;
+    }
+
+  
+</style>
+
+<div class="promiedos-container">
+    <aside class="sidebar">
+        <h2>DESTACADO</h2>
+        <ul>
+            <li><a href="#">Liga Profesional</a></li>
+            <li><a href="#">Primera Nacional</a></li>
+            <li><a href="#">Libertadores</a></li>
+            <li><a href="#">Sudamericana</a></li>
+            <li><a href="#">Copa Argentina</a></li>
+            <li><a href="#">Champions</a></li>
+            <li><a href="#">Eliminatorias</a></li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <div class="header">
+            <h1>⚽ Liga Profesional Argentina</h1>
+            <span>Resultados, posiciones y estadísticas</span>
+        </div>
+
+        <div class="partidos-container">
+            <div class="titulo-liga">🟢 Fecha 12 - Resultados Finales</div>
+
+            <div class="partido">
+                <div class="equipo">
+                    <img src="https://upload.wikimedia.org/wikipedia/en/3/31/San_Lorenzo_de_Almagro_logo.svg" alt="">
+                    <span>San Lorenzo</span>
+                </div>
+                <div class="marcador">2 - 1</div>
+                <div class="equipo">
+                    <img src="https://upload.wikimedia.org/wikipedia/en/2/2b/Deportivo_Riestra_logo.svg" alt="">
+                    <span>Riestra</span>
+                </div>
+                <div class="estado">Final</div>
+            </div>
+
+            <div class="partido">
+                <div class="equipo">
+                    <img src="https://upload.wikimedia.org/wikipedia/en/3/3b/Godoy_Cruz_logo.svg" alt="">
+                    <span>Godoy Cruz</span>
+                </div>
+                <div class="marcador">3 - 0</div>
+                <div class="equipo">
+                    <img src="https://upload.wikimedia.org/wikipedia/en/2/26/San_Martin_de_San_Juan_logo.svg" alt="">
+                    <span>San Martín (SJ)</span>
+                </div>
+                <div class="estado">Final</div>
+            </div>
+
+            <div class="partido">
+                <div class="equipo">
+                    <img src="https://upload.wikimedia.org/wikipedia/en/3/31/Newells_Old_Boys_logo.svg" alt="">
+                    <span>Newell’s</span>
+                </div>
+                <div class="marcador">2 - 3</div>
+                <div class="equipo">
+                    <img src="https://upload.wikimedia.org/wikipedia/en/2/28/Union_de_Santa_Fe_logo.svg" alt="">
+                    <span>Unión</span>
+                </div>
+                <div class="estado">Final</div>
+            </div>
+
+            <div class="partido">
+                <div class="equipo">
+                    <img src="https://upload.wikimedia.org/wikipedia/en/f/f7/Aldosivi_logo.svg" alt="">
+                    <span>Aldosivi</span>
+                </div>
+                <div class="marcador">3 - 1</div>
+                <div class="equipo">
+                    <img src="https://upload.wikimedia.org/wikipedia/en/8/80/Independiente_logo.svg" alt="">
+                    <span>Independiente</span>
+                </div>
+                <div class="estado">Final</div>
+            </div>
+
+            <div class="partido">
+                <div class="equipo">
+                    <img src="https://upload.wikimedia.org/wikipedia/en/8/8a/Boca_Juniors_logo.svg" alt="">
+                    <span>Boca Juniors</span>
+                </div>
+                <div class="marcador">1 - 1</div>
+                <div class="equipo">
+                    <img src="https://upload.wikimedia.org/wikipedia/en/f/f1/River_Plate_logo.svg" alt="">
+                    <span>River Plate</span>
+                </div>
+                <div class="estado">Final</div>
+            </div>
+        </div>
+    </main>
+</div>
