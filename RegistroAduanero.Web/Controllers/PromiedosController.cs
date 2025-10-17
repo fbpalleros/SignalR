@@ -24,10 +24,26 @@ namespace RegistroAduanero.Web.Controllers
             return View();
         }
 
-        public IActionResult PedidosYaLobby()
+        public IActionResult DetallePartido()
         {
             return View();
         }
+
+        public IActionResult Categoria()
+        {
+            return View();
+        }
+
+        public IActionResult DetalleEquipo()
+        {
+            return View();
+        }
+
+
+
+
+
+
 
         [HttpPost]
         public IActionResult Promiedos(Barco barco)
