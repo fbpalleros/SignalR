@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using RegistroAduanero.Entidades;
+using TpSignalR.Entidades;
 
-namespace RegistroAduanero.Repositorio
+namespace TpSignalR.Repositorio
 {
     public class BarcoContext : DbContext
     {

@@ -1,8 +1,8 @@
-﻿using RegistroAduanero.Entidades;
-using RegistroAduanero.Repositorio;
+﻿using TpSignalR.Entidades;
+using TpSignalR.Repositorio;
 
 
-namespace RegistroAduanero.Logica;
+namespace TpSignalR.Logica;
 public interface IBarcosLogica
 {
     void registrarBarco(Barco barco);

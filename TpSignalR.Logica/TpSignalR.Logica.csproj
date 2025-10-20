@@ -4,6 +4,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <RootNamespace>RegistroAduanero.Logica</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,8 +16,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RegistroAduanero.Entidades\RegistroAduanero.Entidades.csproj" />
-    <ProjectReference Include="..\RegistroAduanero.Repositorio\RegistroAduanero.Repositorio.csproj" />
+    <ProjectReference Include="..\TpSignalR.Entidades\TpSignalR.Entidades.csproj" />
+    <ProjectReference Include="..\TpSignalR.Repositorio\TpSignalR.Repositorio.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace RegistroAduanero.Entidades
+namespace TpSignalR.Entidades
 {
     public class Barco
     {
