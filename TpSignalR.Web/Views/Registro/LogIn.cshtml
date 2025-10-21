@@ -1,0 +1,229 @@
+﻿<body>
+    <style>
+        :root {
+            --bg: #0f1724; /* fondo general (oscuro) */
+            --card: #0b1220; /* tarjeta */
+            --accent: #4f46e5; /* morado/azul como acento */
+            --muted: #9ca3af; /* texto secundario */
+            --white: #eef2ff;
+            --glass: rgba(255,255,255,0.03);
+            --radius: 14px;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            background: linear-gradient(180deg,#071023 0%, #07152a 100%);
+            color: var(--white);
+        }
+
+        .wrap {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 32px;
+        }
+
+        /* Card */
+        .card {
+            width: 360px;
+            max-width: 92vw;
+            background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+            border-radius: var(--radius);
+            padding: 28px;
+            box-shadow: 0 8px 30px rgba(2,6,23,0.6);
+            border: 1px solid rgba(255,255,255,0.03);
+            backdrop-filter: blur(6px);
+        }
+
+        .brand {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+            .brand img {
+                width: 44px;
+                height: 44px;
+                border-radius: 10px;
+                background: var(--glass);
+                padding: 8px;
+            }
+
+            .brand .title {
+                font-weight: 700;
+                letter-spacing: 0.2px;
+            }
+
+            .brand .subtitle {
+                display: block;
+                font-size: 12px;
+                color: var(--muted);
+                margin-top: 2px;
+                font-weight: 500;
+            }
+
+        h1 {
+            font-size: 20px;
+            margin: 6px 0 14px 0;
+        }
+
+        p.lead {
+            margin: 0 0 18px 0;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        label {
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        .input {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.04);
+            padding: 10px 12px;
+            border-radius: 10px;
+            color: var(--white);
+            font-size: 14px;
+            outline: none;
+            transition: box-shadow .12s, border-color .12s;
+        }
+
+            .input:focus {
+                box-shadow: 0 6px 18px rgba(79,70,229,0.12);
+                border-color: rgba(79,70,229,0.6);
+            }
+
+        .row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            margin-top: 6px;
+            background: linear-gradient(90deg,var(--accent), #7c3aed);
+            border: none;
+            color: white;
+            padding: 10px 12px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 8px 18px rgba(79,70,229,0.18);
+        }
+
+        .small {
+            font-size: 12px;
+            color: var(--muted);
+            text-align: center;
+            margin-top: 12px;
+        }
+
+        .cookie-note {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 8px;
+        }
+    </style>
+    <div class="wrap">
+        <main class="card" role="main" aria-labelledby="login-title">
+            <div class="brand">
+                <img src="https://cdn-icons-png.flaticon.com/512/3075/3075977.png" alt="icono">
+                <div>
+                    <div class="title">UNLApp</div>
+                    <span class="subtitle">Sistema de gestión — Iniciar sesión</span>
+                </div>
+            </div>
+
+            <h1 id="login-title">Iniciar sesión</h1>
+            <p class="lead">Ingresá tu nombre de usuario y tu ID. Solo guardamos el ID en una cookie para prellenar la próxima vez.</p>
+
+            <!-- Cambiá action al endpoint que uses en tu backend -->
+            <form id="loginForm" method="POST" action="/Registro/LogInCookie" autocomplete="off" novalidate>
+                <div>
+                    <label for="username">Nombre de usuario</label>
+                    <input id="username" name="username" class="input" type="text" placeholder="ej: martin" required />
+                </div>
+
+                <div>
+                    <label for="userId">ID</label>
+                    <input id="userId" name="userId" class="input" type="text" inputmode="numeric" placeholder="ej: 12345" required />
+                </div>
+
+                <button class="btn" type="submit">Entrar</button>
+
+                <div class="cookie-note" aria-live="polite">
+                    La aplicación almacenará tu ID en una cookie (solo para prellenar en este navegador).
+                </div>
+
+                    @*<div class="small">¿No es tu equipo? Cierra sesión o usá una ventana privada para no guardar cookies.</div>*@            
+        </form>
+        </main>
+    </div>
+
+    <script>
+        /* Helper cookies */
+        function setCookie(name, value, days) {
+          const d = new Date();
+          d.setTime(d.getTime() + ((days||7) * 24 * 60 * 60 * 1000));
+          const expires = "expires=" + d.toUTCString();
+          document.cookie = encodeURIComponent(name) + "=" + encodeURIComponent(value) + ";" + expires + ";path=/";
+        }
+        function getCookie(name) {
+          const nameEQ = encodeURIComponent(name) + "=";
+          const ca = document.cookie.split(';');
+          for(let i=0;i<ca.length;i++){
+            let c = ca[i].trim();
+            if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length));
+          }
+          return null;
+        }
+        function eraseCookie(name){
+          document.cookie = encodeURIComponent(name) + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        }
+
+        // Auto-fill ID if exists
+        document.addEventListener('DOMContentLoaded', ()=> {
+          const savedId = getCookie('unlapp_userId');
+          if (savedId) {
+            document.getElementById('userId').value = savedId;
+          }
+
+          // Optionally: focus on username if ID is present
+          const usernameEl = document.getElementById('username');
+          if (savedId) usernameEl.focus();
+          else document.getElementById('userId').focus();
+        });
+
+        // On submit: save ID cookie, then allow normal POST
+        document.getElementById('loginForm').addEventListener('submit', function(e){
+          // validation quick check
+          const uid = document.getElementById('userId').value.trim();
+          if (!uid) {
+            // allow browser required to show message
+            return;
+          }
+
+          // Guardar ID en cookie (7 días). Si preferís que NO se guarde, comentá la línea setCookie.
+          setCookie('unlapp_userId', uid, 30);
+
+          // Nota: si querés limpiar la cookie en ciertos casos:
+          // eraseCookie('unlapp_userId');
+          // Seguimos con el submit normal (POST)
+        });
+    </script>
+</body>

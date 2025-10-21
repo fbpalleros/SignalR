@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Win32;
 using TpSignalR.Entidades;
 
 namespace TpSignalR.Repositorio
@@ -8,6 +9,6 @@ namespace TpSignalR.Repositorio
         public RegistroContext(DbContextOptions<RegistroContext> options) : base(options)
         {
         }
-        public DbSet<Barco> Barcos { get; set; }
+        public DbSet<Registro> Registro { get; set; }
     }
 }

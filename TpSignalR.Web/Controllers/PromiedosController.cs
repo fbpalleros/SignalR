@@ -8,9 +8,9 @@ namespace TpSignalR.Web.Controllers
     {
 
 
-        private readonly IBarcosLogica barcosLogica;
+        private readonly IRegistroLogica barcosLogica;
 
-        public PromiedosController(IBarcosLogica barcosLogica)
+        public PromiedosController(IRegistroLogica barcosLogica)
         {
             this.barcosLogica = barcosLogica;
         }
