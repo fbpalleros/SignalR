@@ -1,4 +1,4 @@
-namespace RegistroAduanero.Web.Models
+namespace TpSignalR.Web.Models
 {
     public class ErrorViewModel
     {

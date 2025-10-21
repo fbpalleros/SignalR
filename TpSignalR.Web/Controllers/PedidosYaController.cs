@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace RegistroAduanero.Web.Controllers
+namespace TpSignalR.Web.Controllers
 {
     public class PedidosYaController : Controller
     {

@@ -1,6 +1,6 @@
-using RegistroAduanero.Logica;
+using TpSignalR.Logica;
 using Microsoft.EntityFrameworkCore;
-using RegistroAduanero.Repositorio;
+using TpSignalR.Repositorio;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,7 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IBarcosLogica, BarcosLogica>();
 builder.Services.AddDbContext<BarcoContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("BarcosConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("TpSignalRConnection")));
 
 
 var app = builder.Build();

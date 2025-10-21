@@ -4,6 +4,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <RootNamespace>TpSignalR.Repositorio</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RegistroAduanero.Entidades\RegistroAduanero.Entidades.csproj" />
+    <ProjectReference Include="..\TpSignalR.Entidades\TpSignalR.Entidades.csproj" />
   </ItemGroup>
 
 </Project>

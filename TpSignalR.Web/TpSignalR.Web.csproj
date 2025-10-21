@@ -23,8 +23,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RegistroAduanero.Entidades\RegistroAduanero.Entidades.csproj" />
-    <ProjectReference Include="..\RegistroAduanero.Logica\RegistroAduanero.Logica.csproj" />
+    <ProjectReference Include="..\TpSignalR.Entidades\TpSignalR.Entidades.csproj" />
+    <ProjectReference Include="..\TpSignalR.Logica\TpSignalR.Logica.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using RegistroAduanero.Entidades;
-using RegistroAduanero.Logica;
+using TpSignalR.Entidades;
+using TpSignalR.Logica;
 
-namespace RegistroAduanero.Web.Controllers
+namespace TpSignalR.Web.Controllers
 {
     public class PromiedosController : Controller
     {
