@@ -7,7 +7,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-builder.Services.AddScoped<IBarcosLogica, BarcosLogica>();
+builder.Services.AddScoped<IRegistroLogica, RegistroLogica>();
+builder.Services.AddScoped<IBarcoLogica, BarcoLogica>(); // <-- registrar la lógica de barcos
+builder.Services.AddDbContext<RegistroContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("TpSignalRConnection")));
 builder.Services.AddDbContext<BarcoContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("TpSignalRConnection")));
 
@@ -32,7 +35,7 @@ app.MapStaticAssets();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Inicio}/{action=Home}/{id?}")
+    pattern: "{controller=Registro}/{action=LogIn}/{id?}")
     .WithStaticAssets();
 
 

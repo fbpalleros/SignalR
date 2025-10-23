@@ -8,9 +8,9 @@ namespace TpSignalR.Web.Controllers
     {
 
 
-        private readonly IBarcosLogica barcosLogica;
+        private readonly IRegistroLogica barcosLogica;
 
-        public PromiedosController(IBarcosLogica barcosLogica)
+        public PromiedosController(IRegistroLogica barcosLogica)
         {
             this.barcosLogica = barcosLogica;
         }
@@ -40,29 +40,24 @@ namespace TpSignalR.Web.Controllers
         }
 
 
+        //[HttpPost]
+        //public IActionResult Promiedos(Barco barco)
+        //{
 
 
+        //    if (ModelState.IsValid)
+        //    {
+        //        barcosLogica.registrarBarco(barco);
+        //        TempData["Mensaje"] = $"El barco {barco.Nombre} fue registrado con un impuesto de {barco.Impuesto:C2}";
+        //        return RedirectToAction("PedidosYa");
+        //    }
+        //    return View(barco);
+        //}
 
-
-
-        [HttpPost]
-        public IActionResult Promiedos(Barco barco)
-        {
-
-
-            if (ModelState.IsValid)
-            {
-                barcosLogica.registrarBarco(barco);
-                TempData["Mensaje"] = $"El barco {barco.Nombre} fue registrado con un impuesto de {barco.Impuesto:C2}";
-                return RedirectToAction("PedidosYa");
-            }
-            return View(barco);
-        }
-
-        public IActionResult PedidosYa()
-        {
-            var barcos = barcosLogica.obtenerTodos();
-            return View(barcos);
-        }
+        //public IActionResult PedidosYa()
+        //{
+        //    var barcos = barcosLogica.obtenerTodos();
+        //    return View(barcos);
+        //}
     }
 }

@@ -3,18 +3,20 @@ using TpSignalR.Repositorio;
 
 
 namespace TpSignalR.Logica;
-public interface IBarcosLogica
+public interface IBarcoLogica
 {
     void registrarBarco(Barco barco);
 
-    List<Barco> obtenerTodos();
+    List<Barco> ObtenerTodos();
 
 }
-public class BarcosLogica : IBarcosLogica
+
+
+public class BarcoLogica : IBarcoLogica
 {
 
     private BarcoContext _context;
-    public BarcosLogica(BarcoContext context)
+    public BarcoLogica(BarcoContext context)
     {
         _context = context;
     }
@@ -38,7 +40,7 @@ public class BarcosLogica : IBarcosLogica
         _barcos.Add(barco);
     }
 
-    public List<Barco> obtenerTodos()
+    public List<Barco> ObtenerTodos()
     {
         return _barcos = _barcos.OrderBy(b => b.Id).ToList();
     }

@@ -1,0 +1,6 @@
+﻿@{
+    ViewData["Title"] = "Login exitoso";
+}
+<h1>@ViewData["Title"]</h1>
+@* El Peek sirve para mantener la data enviada en la sesión, sin eso, se usa una vez y se elimina *@
+<p>Id de usuario: @(TempData.Peek("UserId") ?? "No disponible")</p>
