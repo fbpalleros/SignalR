@@ -40,11 +40,6 @@ namespace TpSignalR.Web.Controllers
         }
 
 
-
-
-
-
-
         //[HttpPost]
         //public IActionResult Promiedos(Barco barco)
         //{

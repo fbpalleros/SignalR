@@ -17,6 +17,9 @@ namespace TpSignalR.Logica
     {
         private readonly RegistroContext _context;
 
+        private static List<Usuario> _usuario = new List<Usuario>()
+        {
+        };
         public RegistroLogica(RegistroContext context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
@@ -27,6 +30,7 @@ namespace TpSignalR.Logica
             if (usuario is null) throw new ArgumentNullException(nameof(usuario));
             _context.Usuarios.Add(usuario);
             _context.SaveChanges();
+            _usuario.Add(usuario);
         }
 
         public List<Usuario> obtenerTodos()
