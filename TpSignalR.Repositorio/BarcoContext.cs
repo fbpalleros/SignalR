@@ -3,9 +3,9 @@ using TpSignalR.Entidades;
 
 namespace TpSignalR.Repositorio
 {
-    public class RegistroContext : DbContext
+    public class BarcoContext : DbContext
     {
-        public RegistroContext(DbContextOptions<RegistroContext> options) : base(options)
+        public BarcoContext(DbContextOptions<BarcoContext> options) : base(options)
         {
         }
         public DbSet<Barco> Barcos { get; set; }

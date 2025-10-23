@@ -9,6 +9,6 @@ namespace TpSignalR.Repositorio
         public RegistroContext(DbContextOptions<RegistroContext> options) : base(options)
         {
         }
-        public DbSet<Registro> Registro { get; set; }
+        public DbSet<Usuario> Usuarios{ get; set; }
     }
 }

@@ -3,18 +3,20 @@ using TpSignalR.Repositorio;
 
 
 namespace TpSignalR.Logica;
-public interface IRegistroLogica
+public interface IBarcoLogica
 {
     void registrarBarco(Barco barco);
 
     List<Barco> ObtenerTodos();
 
 }
-public class RegistroLogica : IRegistroLogica
+
+
+public class BarcoLogica : IBarcoLogica
 {
 
-    private RegistroContext _context;
-    public RegistroLogica(RegistroContext context)
+    private BarcoContext _context;
+    public BarcoLogica(BarcoContext context)
     {
         _context = context;
     }

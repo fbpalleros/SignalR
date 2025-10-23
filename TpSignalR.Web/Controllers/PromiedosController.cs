@@ -45,24 +45,24 @@ namespace TpSignalR.Web.Controllers
 
 
 
-        [HttpPost]
-        public IActionResult Promiedos(Barco barco)
-        {
+        //[HttpPost]
+        //public IActionResult Promiedos(Barco barco)
+        //{
 
 
-            if (ModelState.IsValid)
-            {
-                barcosLogica.registrarBarco(barco);
-                TempData["Mensaje"] = $"El barco {barco.Nombre} fue registrado con un impuesto de {barco.Impuesto:C2}";
-                return RedirectToAction("PedidosYa");
-            }
-            return View(barco);
-        }
+        //    if (ModelState.IsValid)
+        //    {
+        //        barcosLogica.registrarBarco(barco);
+        //        TempData["Mensaje"] = $"El barco {barco.Nombre} fue registrado con un impuesto de {barco.Impuesto:C2}";
+        //        return RedirectToAction("PedidosYa");
+        //    }
+        //    return View(barco);
+        //}
 
-        public IActionResult PedidosYa()
-        {
-            var barcos = barcosLogica.obtenerTodos();
-            return View(barcos);
-        }
+        //public IActionResult PedidosYa()
+        //{
+        //    var barcos = barcosLogica.obtenerTodos();
+        //    return View(barcos);
+        //}
     }
 }
