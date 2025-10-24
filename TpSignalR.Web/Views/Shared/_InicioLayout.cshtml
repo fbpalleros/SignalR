@@ -97,7 +97,9 @@
                 </div>
             </div>
             <div class="nav-right">
-                <div class="username">martinmeza.t22</div>
+                <div class="username">
+                    @Context.Session.GetString("NombreUsuario")
+                </div>
                 <button class="btn-logout">Salir</button>
             </div>
         </nav>
