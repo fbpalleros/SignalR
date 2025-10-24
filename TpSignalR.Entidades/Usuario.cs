@@ -6,14 +6,11 @@ namespace TpSignalR.Entidades
     {
 
         [Key]
-        public int id { get; set; }
+        public int Id { get; set; }
 
         [Required]
         [MaxLength(50)]
         public string Nombre { get; set; }
-
-        [Required]
-        public int IdUsuario { get; set; }
 
     }
 }

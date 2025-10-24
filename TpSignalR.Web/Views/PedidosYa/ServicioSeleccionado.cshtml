@@ -1,5 +1,157 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
+    ViewData["Title"] = "Servicio Seleccionado";
+    // En tu versión dinámica podrías usar algo como:
+    // var categoria = ViewBag.Categoria ?? "Restaurantes";
+    var categoria = "Restaurantes"; // por ahora hardcodeado
 }
+
+<style>
+    .servicio-container {
+        background-color: #0f0f0f;
+        color: #fff;
+        font-family: 'Segoe UI', sans-serif;
+        padding: 30px 40px;
+        min-height: 100vh;
+    }
+
+    .servicio-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+        .servicio-header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #00bfa6;
+        }
+
+        .servicio-header input {
+            background-color: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 10px 15px;
+            color: #fff;
+            width: 280px;
+        }
+
+    /* ===== GRID DE PRODUCTOS ===== */
+    .productos-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 24px;
+    }
+
+    .producto-card {
+        background-color: #1a1a1a;
+        border-radius: 14px;
+        overflow: hidden;
+        transition: transform 0.3s, box-shadow 0.3s;
+        cursor: pointer;
+    }
+
+        .producto-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.2);
+        }
+
+        .producto-card img {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+        }
+
+    .producto-info {
+        padding: 14px;
+    }
+
+        .producto-info h3 {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+
+        .producto-info p {
+            font-size: 0.9rem;
+            color: #ccc;
+            margin-bottom: 6px;
+        }
+
+        .producto-info .precio {
+            color: #00ffcc;
+            font-weight: bold;
+        }
+
+    /* ===== BOTÓN VOLVER ===== */
+    .btn-volver {
+        display: inline-block;
+        margin-top: 40px;
+        background-color: transparent;
+        border: 1px solid #00bfa6;
+        color: #00bfa6;
+        padding: 10px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: background-color 0.3s, color 0.3s;
+    }
+
+        .btn-volver:hover {
+            background-color: #00bfa6;
+            color: #0f0f0f;
+        }
+</style>
+
+<div class="servicio-container">
+    <div class="servicio-header">
+        <h1>🍽️ @categoria</h1>
+        <input type="text" placeholder="Buscar locales o productos..." />
+    </div>
+
+    <div class="productos-grid">
+        <!-- Producto 1 -->
+        <div class="producto-card">
+            <img src="https://images.unsplash.com/photo-1550547660-d9450f859349?w=800" alt="Hamburguesa">
+            <div class="producto-info">
+                <h3>La Burguesa - Palermo</h3>
+                <p>Hamburguesas artesanales, papas y más</p>
+                <p class="precio">$5.200</p>
+            </div>
+        </div>
+
+        <!-- Producto 2 -->
+        <div class="producto-card">
+            <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800" alt="Ensalada">
+            <div class="producto-info">
+                <h3>Green Life</h3>
+                <p>Comidas saludables y wraps</p>
+                <p class="precio">$4.100</p>
+            </div>
+        </div>
+
+        <!-- Producto 3 -->
+        <div class="producto-card">
+            <img src="https://images.unsplash.com/photo-1627308595187-5aa180bda0c2?w=800" alt="Pizza">
+            <div class="producto-info">
+                <h3>Pizza al Paso</h3>
+                <p>Pizzas por porción o enteras</p>
+                <p class="precio">$3.800</p>
+            </div>
+        </div>
+
+        <!-- Producto 4 -->
+        <div class="producto-card">
+            <img src="https://images.unsplash.com/photo-1606756790138-25d8a5b2d0c5?w=800" alt="Empanadas">
+            <div class="producto-info">
+                <h3>El Gauchito</h3>
+                <p>Empanadas salteñas, criollas y más</p>
+                <p class="precio">$3.000</p>
+            </div>
+        </div>
+    </div>
+
+    <a href="/PedidosYa/PedidosYaLobby" class="btn-volver">⬅️ Volver</a>
+</div>

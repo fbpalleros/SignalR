@@ -6,9 +6,9 @@ namespace TpSignalR.Web.Controllers
 {
     public class RegistroController : Controller
     {
-        private readonly IRegistroLogica _registroLogica;
+        private readonly IUsuarioLogica _registroLogica;
 
-        public RegistroController(IRegistroLogica registroLogica)
+        public RegistroController(IUsuarioLogica registroLogica)
         {
             _registroLogica = registroLogica;
         }
@@ -16,12 +16,10 @@ namespace TpSignalR.Web.Controllers
         [HttpPost]
         public IActionResult LogInCookie(string username, string userId)
         {
-            Console.WriteLine($"Usuario: {username}, ID: {userId}");
-            TempData["UserId"] = userId;
+            Console.WriteLine($"Usuario: {username}");
             Usuario usuarioGenerado = new Usuario
             {
-                Nombre = username,
-                IdUsuario = int.Parse(userId)
+                Nombre = username
             };
             _registroLogica.registrarUsuario(usuarioGenerado);
             HttpContext.Session.SetString("NombreUsuario", username);
