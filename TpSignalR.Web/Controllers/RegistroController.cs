@@ -24,6 +24,7 @@ namespace TpSignalR.Web.Controllers
                 IdUsuario = int.Parse(userId)
             };
             _registroLogica.registrarUsuario(usuarioGenerado);
+            HttpContext.Session.SetString("NombreUsuario", username);
             return RedirectToAction("LogInCookie");
         }
 

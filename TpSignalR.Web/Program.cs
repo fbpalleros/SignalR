@@ -14,8 +14,20 @@ builder.Services.AddDbContext<RegistroContext>(options =>
 builder.Services.AddDbContext<BarcoContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("TpSignalRConnection")));
 
+// --- Agregado para usar sesión ---
+builder.Services.AddDistributedMemoryCache(); // almacenamiento temporal en memoria
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30); // tiempo de expiración
+    options.Cookie.HttpOnly = true; // seguridad
+    options.Cookie.IsEssential = true; // necesaria para el funcionamiento de la app
+});
+// --- Agregado para usar sesión ---
 
 var app = builder.Build();
+
+
+app.UseSession(); // --- Agregado para usar sesión ---
 
 
 // Configure the HTTP request pipeline.

@@ -12,7 +12,7 @@ namespace TpSignalR.Entidades
         [MaxLength(50)]
         public string Nombre { get; set; }
 
-       
+        [Required]
         public int IdUsuario { get; set; }
 
     }
