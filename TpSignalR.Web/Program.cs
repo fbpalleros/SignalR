@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using PedidosYa.Web.Hubs;
 using TpSignalR.Logica;
@@ -6,6 +7,11 @@ using TpSignalR.Repositorio;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSignalR();
+
+// Configurar Data Protection para persistir claves y evitar errores de cookie
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo("./keys"))
+    .SetApplicationName("SignalRApp");
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IUsuarioLogica, UsuarioLogica>();
@@ -15,20 +21,20 @@ builder.Services.AddDbContext<RegistroContext>(options =>
 builder.Services.AddDbContext<ServicioContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("TpSignalRConnection")));
 
-// --- Agregado para usar sesión ---
+// --- Agregado para usar sesiï¿½n ---
 builder.Services.AddDistributedMemoryCache(); // almacenamiento temporal en memoria
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(30); // tiempo de expiración
+    options.IdleTimeout = TimeSpan.FromMinutes(30); // tiempo de expiraciï¿½n
     options.Cookie.HttpOnly = true; // seguridad
     options.Cookie.IsEssential = true; // necesaria para el funcionamiento de la app
 });
-// --- Agregado para usar sesión ---
+// --- Agregado para usar sesiï¿½n ---
 
 var app = builder.Build();
 
 
-app.UseSession(); // --- Agregado para usar sesión ---
+app.UseSession(); // --- Agregado para usar sesiï¿½n ---
 
 
 // Configure the HTTP request pipeline.
