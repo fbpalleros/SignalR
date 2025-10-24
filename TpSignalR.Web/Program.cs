@@ -1,17 +1,18 @@
-using TpSignalR.Logica;
 using Microsoft.EntityFrameworkCore;
+using PedidosYa.Web.Hubs;
+using TpSignalR.Logica;
 using TpSignalR.Repositorio;
 
 
 var builder = WebApplication.CreateBuilder(args);
-
+builder.Services.AddSignalR();
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-builder.Services.AddScoped<IRegistroLogica, RegistroLogica>();
-builder.Services.AddScoped<IBarcoLogica, BarcoLogica>(); // <-- registrar la lógica de barcos
+builder.Services.AddScoped<IUsuarioLogica, UsuarioLogica>();
+builder.Services.AddScoped<IServicioLogica, ServicioLogica>();
 builder.Services.AddDbContext<RegistroContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("TpSignalRConnection")));
-builder.Services.AddDbContext<BarcoContext>(options =>
+builder.Services.AddDbContext<ServicioContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("TpSignalRConnection")));
 
 // --- Agregado para usar sesión ---
@@ -50,5 +51,6 @@ app.MapControllerRoute(
     pattern: "{controller=Registro}/{action=LogIn}/{id?}")
     .WithStaticAssets();
 
+app.MapHub<PedidoHub>("/pedidoHub");
 
 app.Run();

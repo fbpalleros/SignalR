@@ -7,20 +7,20 @@ using TpSignalR.Repositorio;
 
 namespace TpSignalR.Logica
 {
-    public interface IRegistroLogica
+    public interface IUsuarioLogica
     {
         List<Usuario> obtenerTodos();
         void registrarUsuario(Usuario usuario);
     }
 
-    public class RegistroLogica : IRegistroLogica
+    public class UsuarioLogica : IUsuarioLogica
     {
         private readonly RegistroContext _context;
 
         private static List<Usuario> _usuario = new List<Usuario>()
         {
         };
-        public RegistroLogica(RegistroContext context)
+        public UsuarioLogica(RegistroContext context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
@@ -36,7 +36,7 @@ namespace TpSignalR.Logica
         public List<Usuario> obtenerTodos()
         {
             return _context.Usuarios
-                .OrderBy(u => u.IdUsuario)
+                .OrderBy(u => u.Id)
                 .ToList();
         }
     }

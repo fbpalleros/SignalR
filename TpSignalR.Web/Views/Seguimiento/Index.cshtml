@@ -1,0 +1,63 @@
+﻿@{
+    ViewData["Title"] = "Seguimiento del Pedido";
+}
+
+<h2>Seguimiento del Pedido</h2>
+<div id="map" style="height: 500px; width: 100%; border-radius: 10px;"></div>
+<p id="estado" style="margin-top: 10px;">Esperando ubicación...</p>
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+
+<!-- SignalR -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+
+<script>
+    const pedidoId = "@ViewBag.PedidoId";
+
+    // Crear el mapa
+    const map = L.map('map').setView([-34.6037, -58.3816], 14); // Buenos Aires
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    const marker = L.marker([-34.6037, -58.3816]).addTo(map);
+
+    // Conexión con el Hub
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/pedidoHub")
+        .build();
+
+    // Escuchar actualizaciones del pedido
+    connection.on("RecibirUbicacion", (lat, lng) => {
+        console.log("📡 Recibida ubicación:", lat, lng);
+        marker.setLatLng([lat, lng]);
+        map.panTo([lat, lng]);
+        document.getElementById("estado").innerText =
+            `📍 Pedido en (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
+    });
+
+    connection.start()
+        .then(() => {
+            console.log("✅ Conectado a SignalR");
+            return connection.invoke("UnirseAPedido", pedidoId);
+        })
+        .then(() => console.log("🟢 Unido al grupo del pedido:", pedidoId))
+        .catch(err => console.error("❌ Error al conectar con SignalR:", err));
+
+    // --- Simulación de movimiento del pedido ---
+    // Esperamos que el hub esté conectado, y luego empezamos a enviar posiciones
+    setTimeout(() => {
+        console.log("🚀 Iniciando simulación de movimiento...");
+        let lat = -34.6037, lng = -58.3816;
+        setInterval(() => {
+            lat += (Math.random() - 0.5) * 0.001;
+            lng += (Math.random() - 0.5) * 0.001;
+            console.log("📤 Enviando nueva posición:", lat, lng);
+            connection.invoke("EnviarUbicacion", pedidoId, lat, lng)
+                .catch(err => console.error("❌ Error enviando ubicación:", err));
+        }, 2000);
+    }, 3000);
+</script>
+
