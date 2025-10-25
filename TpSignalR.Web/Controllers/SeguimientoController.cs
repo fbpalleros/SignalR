@@ -9,5 +9,11 @@ namespace PedidosYa.Web.Controllers
             ViewBag.PedidoId = pedidoId ?? "pedido123"; // ID de ejemplo
             return View();
         }
+
+        public IActionResult PruebaDelivery(string pedidoId)
+        {
+            ViewBag.PedidoId = pedidoId ?? "pedido123"; // ID de ejemplo
+            return View();
+        }
     }
 }
