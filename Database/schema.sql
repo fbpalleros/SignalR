@@ -111,15 +111,21 @@ GO
 -- SUMMARY
 -- ========================================
 
+DECLARE @UsuariosCount INT, @ServiciosCount INT, @MensajesCount INT;
+
+SELECT @UsuariosCount = COUNT(*) FROM Usuarios;
+SELECT @ServiciosCount = COUNT(*) FROM Servicios;
+SELECT @MensajesCount = COUNT(*) FROM Mensajes;
+
 PRINT '';
 PRINT '========================================';
 PRINT '  DATABASE SETUP COMPLETE!';
 PRINT '========================================';
 PRINT '';
 PRINT 'Tables created:';
-PRINT '  • Usuarios      (' + CAST((SELECT COUNT(*) FROM Usuarios) AS VARCHAR) + ' records)';
-PRINT '  • Servicios     (' + CAST((SELECT COUNT(*) FROM Servicios) AS VARCHAR) + ' records)';
-PRINT '  • Mensajes      (' + CAST((SELECT COUNT(*) FROM Mensajes) AS VARCHAR) + ' records)';
+PRINT '  • Usuarios      (' + CAST(@UsuariosCount AS VARCHAR) + ' records)';
+PRINT '  • Servicios     (' + CAST(@ServiciosCount AS VARCHAR) + ' records)';
+PRINT '  • Mensajes      (' + CAST(@MensajesCount AS VARCHAR) + ' records)';
 PRINT '';
 PRINT 'Ready to use! 🎉';
 PRINT '========================================';
