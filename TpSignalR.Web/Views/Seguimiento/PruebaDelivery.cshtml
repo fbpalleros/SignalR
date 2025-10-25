@@ -1,0 +1,153 @@
+﻿@{
+    ViewData["Title"] = "Seguimiento del Pedido";
+}
+
+<h2>Seguimiento del Pedido</h2>
+<div id="map" style="height: 500px; width: 100%; border-radius: 10px;"></div>
+<p id="estado" style="margin-top: 10px;">Esperando ubicación...</p>
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+
+<!-- SignalR -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+@* <script src="https://router.project-osrm.org/route/v1/driving/"></script>
+ *@
+<script>
+
+        // // Tiempo total del recorrido (en segundos)
+        // const duracionTotal = 180;
+
+        // // Frecuencia de actualización (en milisegundos)
+        // const intervalo = 1000;
+
+        // // Puntos de inicio y final (latitud, longitud)
+        // const origen = [-34.66798862780804, -58.56811691597859]; // Pomperito
+        // const destino = [ -34.67068286367901, -58.56239035802546]; // UNLAM
+
+        // // Diferencias entre los puntos
+        // const deltaLat = destino[0] - origen[0];
+        // const deltaLng = destino[1] - origen[1];
+
+        // // Cuántos pasos habrá
+        // const pasos = duracionTotal * (1000 / intervalo);
+
+        // // Cuánto se avanza en cada paso
+        // const pasoLat = deltaLat / pasos;
+        // const pasoLng = deltaLng / pasos;
+
+        // let pasoActual = 0;
+        // let lat = origen[0];
+        // let lng = origen[1];
+    const origen = [-58.56811691597859, -34.66798862780804]; // Pomperito [lng, lat]
+    const destino = [-58.56239035802546, -34.67068286367901]; // UNLAM
+
+
+    const pedidoId = "@ViewBag.PedidoId";
+
+    // Crear el mapa
+    const map = L.map('map').setView([-34.67, -58.565], 14); // Buenos Aires
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    const marker = L.marker([-34.66798862780804, -58.56811691597859]).addTo(map); //Esto es un marcador con las coordenadas iniciales (Podriamos poner las coordenadas
+    //del local/donde inicia el recorrido) - Tambien guarda la referencia para luego, poder moverlo
+
+    // Conexión con el Hub
+    const connection = new signalR.HubConnectionBuilder() //connection te permite start(), invoke() y on() para recibir mensajes.
+        .withUrl("/pedidoHub")
+        .build(); //Se genera la conexión con el hub, es por convención
+
+    // Escuchar actualizaciones del pedido
+    connection.on("RecibirUbicacion", (lat, lng) => {
+        console.log("📡 Recibida ubicación:", lat, lng);
+        marker.setLatLng([lat, lng]); //Mueve el marcador a una nueva posición
+        map.panTo([lat, lng]); //Centra el mapa (Estetico)
+        document.getElementById("estado").innerText =
+            `📍 Pedido en (${lat.toFixed(5)}, ${lng.toFixed(5)})`; //Actualiza el texto a las nuevas coordenadas
+    });
+
+    connection.start()
+        .then(() => {
+            console.log("✅ Conectado a SignalR"); //inicia la conexión real. Asincronica
+            return connection.invoke("UnirseAPedido", pedidoId);
+        })
+        .then(() => console.log("🟢 Unido al grupo del pedido:", pedidoId))
+        .catch(err => console.error("❌ Error al conectar con SignalR:", err));
+
+    // // --- Simulación de movimiento del pedido ---
+    // // Esperamos que el hub esté conectado, y luego empezamos a enviar posiciones
+    // const timer = setInterval(() => {
+    //         if (pasoActual >= pasos) {
+    //             clearInterval(timer);
+    //             console.log("✅ Recorrido completado");
+    //             return;
+    //         }
+
+    //         // Avanzar en línea recta
+    //         lat += pasoLat;
+    //         lng += pasoLng;
+    //         pasoActual++;
+
+    //         console.log(`📤 Enviando posición ${pasoActual}/${pasos}:`, lat, lng);
+
+    //         // Enviar posición al hub SignalR
+    //         connection.invoke("EnviarUbicacion", pedidoId, lat, lng)
+    //             .catch(err => console.error("❌ Error enviando ubicación:", err));
+
+    //     }, intervalo);
+
+        
+        
+
+    
+
+    fetch(`https://router.project-osrm.org/route/v1/driving/${origen.join(',')};${destino.join(',')}?overview=full&geometries=geojson`)
+            .then(res => res.json())
+            .then(data => {
+                const ruta = data.routes[0].geometry.coordinates; // array de [lng, lat]
+                console.log("Ruta generada:", ruta.length, "puntos");
+                const duracionDeseada = 20; // segundos
+                let i = 0;
+                const intervalo = duracionDeseada * 1000 / ruta.length; // ms por punto
+                const timer = setInterval(() => {
+                if (i >= ruta.length) {
+                    clearInterval(timer);
+                    console.log("✅ Llegó al destino");
+                    return;
+                }
+
+                const [lng, lat] = ruta[i];
+                connection.invoke("EnviarUbicacion", pedidoId, lat, lng);
+                i++;
+            }, intervalo);
+            })
+            .catch(err => console.error("❌ Error al obtener ruta:", err));
+
+        // fetch(`https://router.project-osrm.org/route/v1/driving/${origen.join(',')};${destino.join(',')}?overview=full&geometries=geojson`)
+        //     .then(res => res.json())
+        //     .then(data => {
+        //         const ruta = data.routes[0].geometry.coordinates; // array de [lng, lat]
+        //         console.log("Ruta generada:", ruta.length, "puntos");
+
+        //         let i = 0;
+        //         const intervalo = 1000; // cada segundo
+        //         const timer = setInterval(() => {
+        //             if (i >= ruta.length) {
+        //                 clearInterval(timer);
+        //                 console.log("✅ Llegó al destino");
+        //                 return;
+        //             }
+
+        //             const [lng, lat] = ruta[i];
+        //             console.log("📤 Enviando posición:", lat, lng);
+        //             connection.invoke("EnviarUbicacion", pedidoId, lat, lng);
+        //             i++;
+        //         }, intervalo);
+        //     })
+        //     .catch(err => console.error("❌ Error al obtener ruta:", err));
+
+</script>
+
