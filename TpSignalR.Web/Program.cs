@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using PedidosYa.Web.Hubs;
 using TpSignalR.Logica;
 using TpSignalR.Repositorio;
+using TpSignalR.Web.Hubs;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,6 +17,7 @@ builder.Services.AddDataProtection()
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IUsuarioLogica, UsuarioLogica>();
 builder.Services.AddScoped<IServicioLogica, ServicioLogica>();
+builder.Services.AddScoped<IMensajeLogica, MensajeLogica>();
 builder.Services.AddDbContext<RegistroContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("TpSignalRConnection")));
 builder.Services.AddDbContext<ServicioContext>(options =>
@@ -58,5 +60,6 @@ app.MapControllerRoute(
     .WithStaticAssets();
 
 app.MapHub<PedidoHub>("/pedidoHub");
+app.MapHub<ChatHub>("/chatHub");
 
 app.Run();
