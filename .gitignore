@@ -364,3 +364,6 @@ FodyWeavers.xsd
 
 # Local development settings - each developer has their own
 appsettings.Development.json
+
+# Data Protection Keys
+keys/
