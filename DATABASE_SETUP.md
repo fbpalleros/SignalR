@@ -1,5 +1,47 @@
 # Configuración de la Base de Datos
 
+## ⚡ Quick Start - Usando SQL Scripts (Recomendado)
+
+**Usá este método si tenés problemas con EF migrations.** Este enfoque funciona perfecto en Mac y Windows.
+
+### Primera Vez (Setup Completo)
+
+**En Windows:**
+```bash
+cd Database
+sqlcmd -S MM56IG22\SQLEXPRESS -E -i setup.sql
+```
+
+**En Mac:**
+```bash
+cd Database
+podman exec -it sqlserver-signal-r /opt/mssql-tools18/bin/sqlcmd \
+  -S localhost -U sa -P 'TuPassword123' -C -i setup.sql
+```
+
+### Aplicar Nuevas Migraciones
+
+Cuando alguien agregue cambios a la base de datos:
+
+**En Windows:**
+```powershell
+cd Database
+.\apply-migrations.ps1
+```
+
+**En Mac:**
+```bash
+cd Database
+chmod +x apply-migrations.sh  # Solo la primera vez
+./apply-migrations.sh
+```
+
+📚 **Ver documentación completa en: `Database/README.md`**
+
+---
+
+## 🔧 Método Alternativo: Entity Framework Migrations
+
 ## Para Desarrolladores en Windows (SQL Server Local)
 
 ¡No tenés que hacer nada! La aplicación va a usar la connection string que está en `appsettings.json`:
