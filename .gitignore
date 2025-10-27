@@ -367,3 +367,4 @@ appsettings.Development.json
 
 # Data Protection Keys
 keys/
+/TpSignalR.Web/appsettings.json
