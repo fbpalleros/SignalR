@@ -31,7 +31,9 @@ IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Usuarios')
 BEGIN
     CREATE TABLE Usuarios (
         Id INT PRIMARY KEY IDENTITY(1,1),
-        Nombre NVARCHAR(50) NOT NULL
+        Nombre NVARCHAR(50) NOT NULL,
+        Latitud FLOAT NULL,
+        Longitud FLOAT NULL
     );
     PRINT '✓ Table Usuarios created';
 END
@@ -68,13 +70,13 @@ GO
 -- Insert sample users
 IF NOT EXISTS (SELECT * FROM Usuarios WHERE Nombre = 'Juan')
 BEGIN
-    INSERT INTO Usuarios (Nombre) VALUES 
-        ('Juan'),
-        ('María'),
-        ('Pedro'),
-        ('Ana'),
-        ('Carlos'),
-        ('Lucía');
+    INSERT INTO Usuarios (Nombre, Latitud, Longitud) VALUES 
+        ('Juan', -34.6037, -58.3816),
+        ('María', -34.6090, -58.3772),
+        ('Pedro', -34.6158, -58.4333),
+        ('Ana', -34.6189, -58.3928),
+        ('Carlos', -34.6115, -58.4468),
+        ('Lucía', -34.6072, -58.3925);
     PRINT '✓ Sample users inserted';
 END
 GO
@@ -130,3 +132,15 @@ PRINT '';
 PRINT 'Ready to use! 🎉';
 PRINT '========================================';
 GO
+-- Agregar Latitud y Longitud a Usuarios si no existen
+IF COL_LENGTH('Usuarios', 'Latitud') IS NULL
+BEGIN
+    ALTER TABLE Usuarios ADD Latitud FLOAT NULL;
+    PRINT '✓ Columna Latitud agregada a Usuarios';
+END
+
+IF COL_LENGTH('Usuarios', 'Longitud') IS NULL
+BEGIN
+    ALTER TABLE Usuarios ADD Longitud FLOAT NULL;
+    PRINT '✓ Columna Longitud agregada a Usuarios';
+END
