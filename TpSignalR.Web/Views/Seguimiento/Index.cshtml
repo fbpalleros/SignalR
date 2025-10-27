@@ -33,7 +33,8 @@
     // Escuchar actualizaciones del pedido
     connection.on("RecibirUbicacion", (lat, lng) => {
         console.log("📡 Recibida ubicación:", lat, lng);
-        marker.setLatLng([lat, lng]); //Mueve el marcador a una nueva posición
+           marker.setLatLng([latO, lonO]); // espera [lat, lon]
+                                                                 //Mueve el marcador a una nueva posición
         map.panTo([lat, lng]); //Centra el mapa (Estetico)
         document.getElementById("estado").innerText =
             `📍 Pedido en (${lat.toFixed(5)}, ${lng.toFixed(5)})`; //Actualiza el texto a las nuevas coordenadas
