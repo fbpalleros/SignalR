@@ -1,0 +1,152 @@
+﻿@{
+    ViewData["Title"] = "Seguimiento del Pedido";
+}
+
+<h2>Seguimiento del Pedido</h2>
+<div id="map" style="height: 500px; width: 100%; border-radius: 10px;"></div>
+<p id="estado" style="margin-top: 10px;">Esperando ubicación...</p>
+
+<!-- Inputs -->
+<div style="margin-top: 15px;">
+    <label>Origen:</label>
+    <input id="origen" placeholder="Ej: Obelisco Buenos Aires" style="margin-right:10px; width:250px;">
+    <label>Destino:</label>
+    <input id="destino" placeholder="Ej: Congreso Buenos Aires" style="margin-right:10px; width:250px;">
+    <button id="iniciar">Iniciar recorrido</button>
+</div>
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+
+<!-- SignalR -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+
+<script>
+    const pedidoId = "@ViewBag.PedidoId";
+
+    // Crear mapa visible desde el principio
+    const map = L.map('map').setView([-34.67, -58.565], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+
+    const marker = L.marker([-34.66798862780804, -58.56811691597859]).addTo(map);
+    // Configurar conexión SignalR
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/pedidoHub")
+        .build();
+
+    connection.on("RecibirUbicacion", (lat, lng) => {
+        marker.setLatLng([lat, lng]);
+        map.panTo([lat, lng]);
+        document.getElementById("estado").innerText =
+            `📍 Pedido en (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
+    });
+
+    connection.start()
+        .then(() => {
+            console.log("✅ Conectado a SignalR");
+            return connection.invoke("UnirseAPedido", pedidoId);
+        })
+        .then(() => console.log("🟢 Unido al grupo del pedido:", pedidoId))
+        .catch(err => console.error("❌ Error al conectar con SignalR:", err));
+
+    // --- Evento principal ---
+    document.getElementById("iniciar").addEventListener("click", async () => {
+        const origenTxt = document.getElementById("origen").value.trim();
+        const destinoTxt = document.getElementById("destino").value.trim();
+
+        if (!origenTxt || !destinoTxt) {
+            alert("⚠️ Ingresá un origen y destino (nombre o coordenadas)");
+            return;
+        }
+
+        const origenCoords = await obtenerCoordenadas(origenTxt);
+        const destinoCoords = await obtenerCoordenadas(destinoTxt);
+
+        if (!origenCoords || !destinoCoords) {
+            alert("❌ No se pudieron encontrar las ubicaciones ingresadas");
+            return;
+        }
+
+        let [lonO, latO] = origenCoords;
+        let [lonD, latD] = destinoCoords;
+
+        [lonO, latO] = await ajustarACalle(lonO, latO);
+        [lonD, latD] = await ajustarACalle(lonD, latD);
+
+        marker.setLatLng([latO, lonO]);
+        map.setView([latO, lonO], 14);
+
+        console.log("🗺️ Desde:", lonO, latO, "Hasta:", lonD, latD);
+
+        // --- Obtener ruta ---
+        const routeUrl = `https://router.project-osrm.org/route/v1/driving/${lonO},${latO};${lonD},${latD}?overview=full&geometries=geojson`;
+        console.log("Ruta URL:", routeUrl);
+        const res = await fetch(routeUrl);
+        const data = await res.json();
+
+        if (data.code !== "Ok" || !data.routes.length) {
+            alert("❌ No se pudo calcular la ruta entre los puntos");
+            return;
+        }
+
+        const coords = data.routes[0].geometry.coordinates;
+        const latLngs = coords.map(c => [c[1], c[0]]);
+
+        const polyline = L.polyline(latLngs, { color: 'blue' }).addTo(map);
+        map.fitBounds(polyline.getBounds());
+
+        // --- Simulación ---
+        let index = 0;
+        const velocidad = 100;
+
+        const mover = setInterval(() => {
+            if (index >= latLngs.length) {
+                clearInterval(mover);
+                document.getElementById("estado").innerText = "✅ Llegó al destino";
+                return;
+            }
+
+            const [lat, lon] = latLngs[index];
+            marker.setLatLng([lat, lon]);
+            map.panTo([lat, lon]);
+            document.getElementById("estado").innerText =
+                `🚚 En camino... (${lat.toFixed(5)}, ${lon.toFixed(5)})`;
+
+            index++;
+        }, velocidad);
+    });
+
+    // --- Funciones auxiliares ---
+    async function ajustarACalle(lon, lat) {
+        const res = await fetch(`https://router.project-osrm.org/nearest/v1/driving/${lon},${lat}`);
+        const data = await res.json();
+        if (data && data.waypoints && data.waypoints.length > 0) {
+            return data.waypoints[0].location; // [lon, lat]
+        }
+        return [lon, lat];
+    }
+
+    async function obtenerCoordenadas(lugar) {
+        if (lugar.includes(",")) {
+            const [lat, lng] = lugar.split(",").map(Number);
+            if (!isNaN(lat) && !isNaN(lng)) return [lat, lng];
+        }
+
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(lugar)}`;
+        try {
+            const res = await fetch(url);
+            const data = await res.json();
+            if (data && data.length > 0) {
+                return [parseFloat(data[0].lon), parseFloat(data[0].lat)];
+            }
+        } catch (err) {
+            console.error("Error geocodificando:", err);
+        }
+        return null;
+    }
+</script>
+
