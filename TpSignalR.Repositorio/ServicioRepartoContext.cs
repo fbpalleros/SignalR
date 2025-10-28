@@ -19,8 +19,8 @@ namespace TpSignalR.Repositorio
         public DbSet<UsuarioFinal> UsuariosFinales { get; set; }
         public DbSet<Pedido> Pedidos { get; set; }
         public DbSet<PedidoDetalle> PedidoDetalles { get; set; }
-        public DbSet<Mensaje> Mensajes { get; set; } // Tu clase original
-
+        public DbSet<Usuario> Usuarios { get; set; }
+        public DbSet<Mensaje> Mensajes { get; set; }
         // ==========================
         // CONFIGURACIÓN DEL MODELO
         // ==========================
@@ -57,7 +57,7 @@ namespace TpSignalR.Repositorio
             modelBuilder.Entity<UsuarioFinal>()
                 .HasMany(u => u.Pedidos)
                 .WithOne(p => p.UsuarioFinal)
-                .HasForeignKey(p => p.UsuarioId)
+                .HasForeignKey(p => p.UsuarioFinalId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // ---- PEDIDO ----

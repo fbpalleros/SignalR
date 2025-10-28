@@ -26,7 +26,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="appsettings.json" />
     <None Include="wwwroot\img\pedidosYa.jpeg" />
     <None Include="wwwroot\img\promiedos.jpg" />
   </ItemGroup>

@@ -1,20 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace TpSignalR.Entidades
 {
     public class Comercio
     {
         [Key]
-        public int Id { get; set; }
+        public int ComercioId { get; set; }
 
         [Required]
         [MaxLength(100)]
         public string Nombre { get; set; }
-
-        [MaxLength(150)]
-        public string Direccion { get; set; }
 
         [Required]
         public decimal Latitud { get; set; }
@@ -22,8 +17,14 @@ namespace TpSignalR.Entidades
         [Required]
         public decimal Longitud { get; set; }
 
-        // Relaciones
+        [MaxLength(500)]
+        public string CategoriasMenu { get; set; }
+
+        [MaxLength(1000)]
+        public string PreciosMenu { get; set; }
+
         public ICollection<Producto> Productos { get; set; }
         public ICollection<Pedido> Pedidos { get; set; }
+    
     }
 }
