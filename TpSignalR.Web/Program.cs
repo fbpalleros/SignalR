@@ -22,6 +22,8 @@ builder.Services.AddDbContext<RegistroContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("TpSignalRConnection")));
 builder.Services.AddDbContext<ServicioContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("TpSignalRConnection")));
+builder.Services.AddDbContext<ServicioRepartoContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("TpSignalRConnection")));
 
 // --- Agregado para usar sesi�n ---
 builder.Services.AddDistributedMemoryCache(); // almacenamiento temporal en memoria

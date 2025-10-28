@@ -5,6 +5,21 @@
 -- Run this script to create the database from scratch
 
 USE master;
+
+GO
+-- Agregar Latitud y Longitud a Usuarios si no existen
+IF COL_LENGTH('Usuarios', 'Latitud') IS NULL
+BEGIN
+    ALTER TABLE Usuarios ADD Latitud FLOAT NULL;
+    PRINT '✓ Columna Latitud agregada a Usuarios';
+END
+
+IF COL_LENGTH('Usuarios', 'Longitud') IS NULL
+BEGIN
+    ALTER TABLE Usuarios ADD Longitud FLOAT NULL;
+    PRINT '✓ Columna Longitud agregada a Usuarios';
+END
+
 GO
 
 -- Create database if it doesn't exist
@@ -131,16 +146,4 @@ PRINT '  • Mensajes      (' + CAST(@MensajesCount AS VARCHAR) + ' records)';
 PRINT '';
 PRINT 'Ready to use! 🎉';
 PRINT '========================================';
-GO
--- Agregar Latitud y Longitud a Usuarios si no existen
-IF COL_LENGTH('Usuarios', 'Latitud') IS NULL
-BEGIN
-    ALTER TABLE Usuarios ADD Latitud FLOAT NULL;
-    PRINT '✓ Columna Latitud agregada a Usuarios';
-END
 
-IF COL_LENGTH('Usuarios', 'Longitud') IS NULL
-BEGIN
-    ALTER TABLE Usuarios ADD Longitud FLOAT NULL;
-    PRINT '✓ Columna Longitud agregada a Usuarios';
-END
