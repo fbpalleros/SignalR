@@ -14,9 +14,9 @@ namespace TpSignalR.Logica
 
     public class MensajeLogica : IMensajeLogica
     {
-        private readonly RegistroContext _context;
+        private readonly ServicioRepartoContext _context;
 
-        public MensajeLogica(RegistroContext context)
+        public MensajeLogica(ServicioRepartoContext context)
         {
             _context = context;
         }

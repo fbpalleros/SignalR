@@ -18,10 +18,14 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IUsuarioLogica, UsuarioLogica>();
 builder.Services.AddScoped<IServicioLogica, ServicioLogica>();
 builder.Services.AddScoped<IMensajeLogica, MensajeLogica>();
-builder.Services.AddDbContext<RegistroContext>(options =>
+builder.Services.AddDbContext<InicializacionContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("TpSignalRConnection")));
 builder.Services.AddDbContext<ServicioContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("TpSignalRConnection")));
+builder.Services.AddDbContext<ServicioRepartoContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("TpSignalRConnection")));
+//builder.Services.AddDbContext<RegistroContext>(options =>
+//    options.UseSqlServer(builder.Configuration.GetConnectionString("TpSignalRConnection")));
 
 // --- Agregado para usar sesi�n ---
 builder.Services.AddDistributedMemoryCache(); // almacenamiento temporal en memoria

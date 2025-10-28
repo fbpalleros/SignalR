@@ -15,12 +15,12 @@ namespace TpSignalR.Logica
 
     public class UsuarioLogica : IUsuarioLogica
     {
-        private readonly RegistroContext _context;
+        private readonly ServicioRepartoContext _context;
 
         private static List<Usuario> _usuario = new List<Usuario>()
         {
         };
-        public UsuarioLogica(RegistroContext context)
+        public UsuarioLogica(ServicioRepartoContext context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
