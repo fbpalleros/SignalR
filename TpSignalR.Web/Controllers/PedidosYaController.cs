@@ -1,12 +1,18 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using TpSignalR.Repositorio;
+using TpSignalR.Entidades;
+using System.Linq;
+using TpSignalR.Logica;
 
 namespace TpSignalR.Web.Controllers
 {
     public class PedidosYaController : Controller
     {
-        public IActionResult PedidosYa()
+        private readonly IPedidosYaLogica _pedidos;
+
+        public PedidosYaController(IPedidosYaLogica pedidos)
         {
-            return View();
+            _pedidos = pedidos;
         }
 
         public IActionResult PedidosYaLobby()
@@ -15,7 +21,12 @@ namespace TpSignalR.Web.Controllers
         }
         public IActionResult ServicioSeleccionado()
         {
-            return View();
+            // Obtener todos los productos y enviarlos como modelo a la vista
+            var productos = _pedidos.ObtenerProductosPorComercio(1)
+                .OrderBy(p => p.Id)
+                .ToList();
+
+            return View(productos);
         }
 
         public IActionResult FinalizarCompra()
@@ -26,6 +37,16 @@ namespace TpSignalR.Web.Controllers
         public IActionResult VerPedidoEnTiempoReal()
         {
             return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult solicitarPedido(int productoId)
+        {
+            // Aquí podrías crear el pedido usando el productoId. Por ahora guardamos el id en TempData y redirigimos.
+            TempData["ProductoSeleccionadoId"] = productoId;
+            _pedidos.CrearPedido(1, 1, 1);
+            return RedirectToAction("FinalizarCompra");
         }
     }
 }

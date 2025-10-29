@@ -10,6 +10,7 @@ namespace TpSignalR.Entidades
 
         [Required]
         [ForeignKey("Comercio")]
+        [Column("comercio_id")]
         public int ComercioId { get; set; }
 
         [Required]

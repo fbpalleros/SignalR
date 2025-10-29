@@ -13,12 +13,12 @@ namespace TpSignalR.Repositorio
         // ==========================
         // TABLAS (DbSet)
         // ==========================
-        public DbSet<Comercio> Comercios { get; set; }
-        public DbSet<Producto> Productos { get; set; }
-        public DbSet<Repartidor> Repartidores { get; set; }
-        public DbSet<UsuarioFinal> UsuariosFinales { get; set; }
-        public DbSet<Pedido> Pedidos { get; set; }
-        public DbSet<PedidoDetalle> PedidoDetalles { get; set; }
+        public DbSet<Comercio> Comercio { get; set; }
+        public DbSet<Producto> Producto { get; set; }
+        public DbSet<Repartidor> Repartidor { get; set; }
+        public DbSet<UsuarioFinal> UsuarioFinal { get; set; }
+        public DbSet<Pedido> Pedido { get; set; }
+        public DbSet<PedidoDetalle> PedidoDetalle { get; set; }
         public DbSet<Usuario> Usuarios { get; set; }
         public DbSet<Mensaje> Mensajes { get; set; }
         // ==========================

@@ -1,8 +1,7 @@
-﻿@{
+﻿@model List<TpSignalR.Entidades.Producto>
+@{
     ViewData["Title"] = "Servicio Seleccionado";
-    // En tu versión dinámica podrías usar algo como:
-    // var categoria = ViewBag.Categoria ?? "Restaurantes";
-    var categoria = "Restaurantes"; // por ahora hardcodeado
+    var categoria = "Restaurantes";
 }
 
 <style>
@@ -38,7 +37,6 @@
             width: 280px;
         }
 
-    /* ===== GRID DE PRODUCTOS ===== */
     .productos-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -85,7 +83,6 @@
             font-weight: bold;
         }
 
-    /* ===== BOTÓN VOLVER ===== */
     .btn-volver {
         display: inline-block;
         margin-top: 40px;
@@ -112,45 +109,29 @@
     </div>
 
     <div class="productos-grid">
-        <!-- Producto 1 -->
-        <div class="producto-card">
-            <img src="https://images.unsplash.com/photo-1550547660-d9450f859349?w=800" alt="Hamburguesa">
-            <div class="producto-info">
-                <h3>La Burguesa - Palermo</h3>
-                <p>Hamburguesas artesanales, papas y más</p>
-                <p class="precio">$5.200</p>
-            </div>
-        </div>
-
-        <!-- Producto 2 -->
-        <div class="producto-card">
-            <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800" alt="Ensalada">
-            <div class="producto-info">
-                <h3>Green Life</h3>
-                <p>Comidas saludables y wraps</p>
-                <p class="precio">$4.100</p>
-            </div>
-        </div>
-
-        <!-- Producto 3 -->
-        <div class="producto-card">
-            <img src="https://images.unsplash.com/photo-1627308595187-5aa180bda0c2?w=800" alt="Pizza">
-            <div class="producto-info">
-                <h3>Pizza al Paso</h3>
-                <p>Pizzas por porción o enteras</p>
-                <p class="precio">$3.800</p>
-            </div>
-        </div>
-
-        <!-- Producto 4 -->
-        <div class="producto-card">
-            <img src="https://images.unsplash.com/photo-1606756790138-25d8a5b2d0c5?w=800" alt="Empanadas">
-            <div class="producto-info">
-                <h3>El Gauchito</h3>
-                <p>Empanadas salteñas, criollas y más</p>
-                <p class="precio">$3.000</p>
-            </div>
-        </div>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var producto in Model)
+            {
+                <div class="producto-card">
+                    <img src="https://images.unsplash.com/photo-1550547660-d9450f859349?w=800" alt="@producto.Nombre">
+                    <div class="producto-info">
+                        <h3>@producto.Nombre</h3>
+                        <p>@producto.Categoria</p>
+                        <p class="precio">@producto.Precio.ToString("C0")</p>
+                        <form method="post" asp-action="solicitarPedido">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="productoId" value="@producto.Id" />
+                            <button type="submit" style="margin-top:8px;padding:8px 12px;border-radius:8px;background:#00bfa6;border:none;color:#000;font-weight:600;">Seleccionar</button>
+                        </form>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <p>No hay productos disponibles.</p>
+        }
     </div>
 
     <a href="/PedidosYa/PedidosYaLobby" class="btn-volver">⬅️ Volver</a>
