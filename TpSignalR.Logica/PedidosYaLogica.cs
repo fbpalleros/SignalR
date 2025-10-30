@@ -73,6 +73,7 @@ namespace TpSignalR.Logica
                 UsuarioFinalId = idCliente,
                 ComercioId = idComercio,
                 RepartidorId = repartidor.RepartidorId,
+                ProductoId = idProducto,
                 Total = total,
                 Estado = "Pendiente",
             };

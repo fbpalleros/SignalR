@@ -23,6 +23,8 @@ namespace TpSignalR.Entidades
         [Column("usuario_id")]
         public int UsuarioFinalId { get; set; }
 
+        public int ProductoId { get; set; }
+
 
         public decimal Total { get; set; }
 
