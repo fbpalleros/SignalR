@@ -47,7 +47,7 @@ namespace TpSignalR.Logica
         {
 
             // Intentar asignar un repartidor disponible para evitar conflicto FK (evitar usar 0)
-            var repartidor = _context.Repartidor.FirstOrDefault(r => r.Estado == "Disponible");
+            var repartidor = _context.Repartidor.FirstOrDefault(r => r.Estado == "Disponible"); //No debería de estar acá
             if (repartidor == null)
             {
                 // Si no hay repartidor disponible, crear uno placeholder o cambiar la lógica según necesites

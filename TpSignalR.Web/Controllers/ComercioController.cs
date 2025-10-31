@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using PedidosYa.Web.Controllers;
 
 namespace TpSignalR.Web.Controllers
 {
@@ -9,7 +10,12 @@ namespace TpSignalR.Web.Controllers
             return View();
         }
 
-        //
-        
+        public IActionResult DetallePedido()
+        {
+            // Redirige a la acción "PruebaIngresoDeDatosDelivery" del controlador "SeguimientoController"
+            // Nota: el nombre del controlador se pasa sin el sufijo "Controller"
+            return RedirectToAction("PruebaIngresoDeDatosDelivery", "Seguimiento");
+        }
+
     }
 }
