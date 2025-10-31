@@ -1,0 +1,129 @@
+﻿@{
+}
+
+
+@*
+    Necesito una vista de un comercio a modo de administrador donde pueda ver las diferentes opciones que tiene el comercio.
+    Un historial de pedidos, un seguimiento de delivery, y un panel de control para ver las estadísticas del comercio.
+    Agrega algunos pedidos y estadísticas, añadiendo así una parte dinamica para hacer actualizaciones en tiempo real
+*@
+
+@{
+    ViewData["Title"] = "Inicio Comercio";
+    Layout = "~/Views/Shared/_InicioLayout.cshtml";
+}
+<div class="comercio-container">
+    <div class="comercio-header">
+        <h1>Panel de Control del Comercio</h1>
+    </div>
+    <div class="estadisticas-section">
+        <h2>Estadísticas</h2>
+        <div class="estadisticas-cards">
+            <div class="estadistica-card">
+                <h3>Pedidos Totales</h3>
+                <p id="totalPedidos">0</p>
+            </div>
+            <div class="estadistica-card">
+                <h3>Pedidos en Proceso</h3>
+                <p id="pedidosEnProceso">0</p>
+            </div>
+            <div class="estadistica-card">
+                <h3>Ventas del Día</h3>
+                <p id="ventasDelDia">$0.00</p>
+            </div>
+        </div>
+    </div>
+    <div class="historial-section">
+        <h2>Historial de Pedidos</h2>
+        <table class="historial-table">
+            <thead>
+                <tr>
+                    <th>ID Pedido</th>
+                    <th>Cliente</th>
+                    <th>Estado</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody id="historialPedidosBody">
+                <!-- Los pedidos se cargarán aquí dinámicamente -->
+            </tbody>
+        </table>
+    </div>
+</div>
+<style>
+    .comercio-container {
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 20px;
+        background-color: #1a1a1a;
+        border-radius: 12px;
+        box-shadow: 0 0 20px rgba(0, 255, 204, 0.1);
+        color: #fff;
+    }
+    .comercio-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    .estadisticas-section,
+    .historial-section {
+        margin-bottom: 40px;
+    }
+    .estadisticas-cards {
+        display: flex;
+        gap: 20px;
+        justify-content: space-around;
+    }
+    .estadistica-card {
+        background-color: #222;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        flex: 1;
+    }
+    .estadistica-card h3 {
+        margin-bottom: 10px;
+    }
+    .estadistica-card p {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #00ffcc;
+    }
+    .historial-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .historial-table th,
+    .historial-table td {
+        padding: 12px;
+        border-bottom: 1px solid #333;
+        text-align: left;
+    }
+    .historial-table th {
+        background-color: #222;
+        }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+<script>
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/comercioHub")
+        .build();
+    connection.start().then(() => {
+        console.log("Conectado al hub de comercio.");
+    }).catch(err => console.error(err.toString()));
+    connection.on("ActualizarEstadisticas", (totalPedidos, pedidosEnProceso, ventasDelDia) => {
+        document.getElementById("totalPedidos").innerText = totalPedidos;
+        document.getElementById("pedidosEnProceso").innerText = pedidosEnProceso;
+        document.getElementById("ventasDelDia").innerText = `$${ventasDelDia.toFixed(2)}`;
+    });
+    connection.on("AgregarPedidoHistorial", (pedido) => {
+        const tbody = document.getElementById("historialPedidosBody");
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${pedido.id}</td>
+            <td>${pedido.cliente}</td>
+            <td>${pedido.estado}</td>
+            <td>$${pedido.total.toFixed(2)}</td>
+        `;
+        tbody.prepend(row);
+    });
+</script>
