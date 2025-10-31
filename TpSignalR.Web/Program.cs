@@ -18,6 +18,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IUsuarioLogica, UsuarioLogica>();
 builder.Services.AddScoped<IServicioLogica, ServicioLogica>();
 builder.Services.AddScoped<IMensajeLogica, MensajeLogica>();
+builder.Services.AddScoped<IPedidosYaLogica, PedidosYaLogica>();
 // Registrar el notifier que usa IHubContext<ChatHub>
 builder.Services.AddSingleton<IMensajeNotifier, MensajeNotifier>();
 builder.Services.AddDbContext<InicializacionContext>(options =>
