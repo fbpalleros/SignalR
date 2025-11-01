@@ -274,3 +274,13 @@ VALUES
 (1, 1, 1, 3500),
 (1, 3, 1, 1500);
 GO
+
+ALTER TABLE Pedido
+ADD producto_id INT NULL;
+
+ALTER TABLE Pedido
+ADD CONSTRAINT FK_Pedido_Producto
+FOREIGN KEY (producto_id) REFERENCES Producto(id);
+
+SELECT *
+FROM Pedido

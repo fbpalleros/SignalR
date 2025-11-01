@@ -1,0 +1,235 @@
+﻿@{
+    ViewData["Title"] = "Panel del Comercio";
+    Layout = "~/Views/Shared/_InicioLayout.cshtml";
+}
+
+<div class="comercio-container">
+    <div class="comercio-header">
+        <h1>📊 Panel de Control del Comercio</h1>
+    </div>
+
+    <!-- ESTADÍSTICAS -->
+    <div class="estadisticas-section">
+        <h2>📈 Estadísticas</h2>
+        <div class="estadisticas-cards">
+            <div class="estadistica-card">
+                <h3>Pedidos Totales</h3>
+                <p id="totalPedidos">0</p>
+            </div>
+            <div class="estadistica-card">
+                <h3>Pedidos en Proceso</h3>
+                <p id="pedidosEnProceso">0</p>
+            </div>
+            <div class="estadistica-card">
+                <h3>Ventas del Día</h3>
+                <p id="ventasDelDia">$0.00</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- HISTORIAL -->
+    <div class="historial-section">
+        <h2>🧾 Historial de Pedidos</h2>
+        <table class="historial-table">
+            <thead>
+                <tr>
+                    <th>ID Pedido</th>
+                    <th>Cliente</th>
+                    <th>Estado</th>
+                    <th>Total</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody id="historialPedidosBody">
+                <!-- Dinámico -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .comercio-container {
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 20px;
+        background-color: #0f0f0f;
+        border-radius: 12px;
+        box-shadow: 0 0 25px rgba(0, 255, 204, 0.1);
+        color: #fff;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .comercio-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .estadisticas-cards {
+        display: flex;
+        gap: 20px;
+        justify-content: space-around;
+        flex-wrap: wrap;
+    }
+
+    .estadistica-card {
+        background-color: #1a1a1a;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        flex: 1;
+        min-width: 180px;
+        transition: background 0.3s;
+    }
+
+        .estadistica-card:hover {
+            background-color: #222;
+        }
+
+        .estadistica-card p {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00ffcc;
+        }
+
+    .historial-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+        .historial-table th,
+        .historial-table td {
+            padding: 12px;
+            border-bottom: 1px solid #333;
+            text-align: left;
+        }
+
+        .historial-table th {
+            background-color: #1a1a1a;
+        }
+
+    .btn-accion {
+        background-color: #00b894;
+        color: #fff;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background-color 0.3s;
+    }
+
+        .btn-accion:hover {
+            background-color: #009973;
+        }
+
+    .estado-listo {
+        color: #00ff88;
+        font-weight: bold;
+    }
+
+    .estado-proceso {
+        color: #ffcc00;
+        font-weight: bold;
+    }
+</style>
+
+<!-- SIGNALR -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+
+<script>
+    // === CONFIGURACIÓN DE SIGNALR ===
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/ComercioHub")
+        .build();
+
+    connection.start()
+        .then(() => console.log("✅ Conectado al hub de comercio."))
+        .catch(err => console.error(err));
+        connection.start()
+    .then(() => {
+        console.log("✅ Conectado al hub de comercio.");
+    })
+    .catch(err => console.error("❌ Error al conectar con el hub:", err));
+
+    // === EVENTOS DESDE EL SERVIDOR ===
+    connection.on("ActualizarEstadisticas", (total, enProceso, ventas) => {
+        document.getElementById("totalPedidos").innerText = total;
+        document.getElementById("pedidosEnProceso").innerText = enProceso;
+        document.getElementById("ventasDelDia").innerText = `$${ventas.toFixed(2)}`;
+    });
+
+    connection.on("AgregarPedidoHistorial", (pedido) => agregarPedidoFila(pedido));
+
+
+    // === FUNCIÓN PARA AGREGAR FILAS AL HISTORIAL ===
+    function agregarPedidoFila(pedido) {
+        const tbody = document.getElementById("historialPedidosBody");
+        const row = document.createElement("tr");
+        row.setAttribute("data-id", pedido.id);
+
+        row.innerHTML = `
+            <td>${pedido.id}</td>
+            <td>${pedido.cliente}</td>
+            <td class="estado ${pedido.estado === 'Listo' ? 'estado-listo' : 'estado-proceso'}">${pedido.estado}</td>
+            <td>$${pedido.total.toFixed(2)}</td>
+            <td>
+                ${pedido.estado === 'En proceso'
+                    ? `<button class="btn-accion" onclick="cambiarEstado(${pedido.id})">Marcar Listo</button>`
+                    : `<span>✅ Listo</span>`}
+            </td>
+        `;
+        tbody.prepend(row);
+    }
+
+    // === FUNCIÓN PARA CAMBIAR EL ESTADO A "LISTO" ===
+        function cambiarEstado(id) {
+        if (connection.state !== "Connected") {
+            alert("Esperá un segundo... la conexión con el servidor no está lista.");
+            return;
+        }
+
+        connection.invoke("CambiarEstadoPedido", id, "Listo")
+            .then(() => {
+                console.log(`🟢 Pedido ${id} marcado como listo`);
+                window.location.href = `/Comercio/DetallePedido/${id}`;
+            })
+            .catch(err => console.error(err));
+    }
+
+
+    // === EJEMPLOS INICIALES ===
+    const pedidosIniciales = [
+        { id: 1, cliente: "Juan Pérez", estado: "En proceso", total: 2500 },
+        { id: 2, cliente: "María López", estado: "En proceso", total: 1900 },
+        { id: 3, cliente: "Carlos Gómez", estado: "Listo", total: 3400 },
+    ];
+
+    pedidosIniciales.forEach(p => agregarPedidoFila(p));
+
+    // Estadísticas iniciales
+    document.getElementById("totalPedidos").innerText = pedidosIniciales.length;
+    document.getElementById("pedidosEnProceso").innerText = pedidosIniciales.filter(p => p.estado === "En proceso").length;
+    document.getElementById("ventasDelDia").innerText = `$${pedidosIniciales.reduce((a, b) => a + b.total, 0).toFixed(2)}`;
+
+        function cambiarEstado(id) {
+        const row = document.querySelector(`tr[data-id='${id}']`);
+        const estadoCell = row.querySelector(".estado");
+
+        // Cambia visualmente el estado
+        estadoCell.innerText = "Listo";
+        estadoCell.classList.remove("estado-proceso");
+        estadoCell.classList.add("estado-listo");
+        row.lastElementChild.innerHTML = "<span>✅ Listo</span>";
+
+        // Avisar al servidor (SignalR)
+        connection.invoke("CambiarEstadoPedido", id, "Listo")
+            .then(() => {
+                console.log(`🟢 Pedido ${id} marcado como listo`);
+                // Redirigir después del cambio
+                window.location.href = `/Comercio/DetallePedido/${id}`;
+            })
+            .catch(err => console.error(err));
+    }
+
+</script>
