@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 using System.Threading.Tasks;
 using TpSignalR.Logica;
-using TpSignalR.Entidades;
 
 namespace TpSignalR.Web.Hubs
 {
@@ -16,26 +15,14 @@ namespace TpSignalR.Web.Hubs
 
         public async Task EnviarMensaje(string usuario, string mensaje)
         {
-            // Guardar mensaje usando la capa de lógica (que a su vez notificará vía IMensajeNotifier)
+            // Guardar en la base de datos
             var mensajeGuardado = _mensajeLogica.Guardar(mensaje, usuario);
 
-            // Enviar ack al cliente que envió el mensaje (opcional)
-            await Clients.Caller.SendAsync("MensajeGuardado", mensajeGuardado.Id);
-        }
-    }
-
-    public class MensajeNotifier : IMensajeNotifier
-    {
-        private readonly IHubContext<ChatHub> _hubContext;
-
-        public MensajeNotifier(IHubContext<ChatHub> hubContext)
-        {
-            _hubContext = hubContext;
-        }
-
-        public async Task NotifyMensajeAsync(Mensaje mensaje)
-        {
-            await _hubContext.Clients.All.SendAsync("RecibirMensaje", mensaje.Usuario, mensaje.Texto, mensaje.Fecha.ToString("HH:mm:ss"));
+            // Enviar a todos los clientes conectados
+            await Clients.All.SendAsync("RecibirMensaje", 
+                mensajeGuardado.Usuario, 
+                mensajeGuardado.Texto, 
+                mensajeGuardado.Fecha.ToString("HH:mm:ss"));
         }
     }
 }
