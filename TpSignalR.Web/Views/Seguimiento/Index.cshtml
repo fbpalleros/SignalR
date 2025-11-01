@@ -1,0 +1,66 @@
+﻿@{
+    ViewData["Title"] = "Seguimiento del Pedido";
+}
+
+<h2>Seguimiento del Pedido</h2>
+<div id="map" style="height: 500px; width: 100%; border-radius: 10px;"></div>
+<p id="estado" style="margin-top: 10px;">Esperando ubicación...</p>
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+
+<!-- SignalR -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+
+<script>
+    const pedidoId = "@ViewBag.PedidoId";
+
+    // Crear el mapa
+    const map = L.map('map').setView([-34.67, -58.565], 14); // Buenos Aires
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+     
+    const marker = L.marker([-34.66798862780804, -58.56811691597859]).addTo(map); //Esto es un marcador con las coordenadas iniciales (Podriamos poner las coordenadas
+    //del local/donde inicia el recorrido) - Tambien guarda la referencia para luego, poder moverlo
+
+    // Conexión con el Hub
+    const connection = new signalR.HubConnectionBuilder() //connection te permite start(), invoke() y on() para recibir mensajes.
+        .withUrl("/pedidoHub")
+        .build(); //Se genera la conexión con el hub, es por convención
+
+    // Escuchar actualizaciones del pedido
+    connection.on("RecibirUbicacion", (lat, lng) => {
+        console.log("📡 Recibida ubicación:", lat, lng);
+           marker.setLatLng([latO, lonO]); // espera [lat, lon]
+                                                                 //Mueve el marcador a una nueva posición
+        map.panTo([lat, lng]); //Centra el mapa (Estetico)
+        document.getElementById("estado").innerText =
+            `📍 Pedido en (${lat.toFixed(5)}, ${lng.toFixed(5)})`; //Actualiza el texto a las nuevas coordenadas
+    });
+
+    connection.start()
+        .then(() => {
+            console.log("✅ Conectado a SignalR"); //inicia la conexión real. Asincronica
+            return connection.invoke("UnirseAPedido", pedidoId);
+        })
+        .then(() => console.log("🟢 Unido al grupo del pedido:", pedidoId))
+        .catch(err => console.error("❌ Error al conectar con SignalR:", err));
+
+    // --- Simulación de movimiento del pedido ---
+    // Esperamos que el hub esté conectado, y luego empezamos a enviar posiciones
+    setTimeout(() => {
+        console.log("🚀 Iniciando simulación de movimiento...");
+        let lat = -34.67, lng = -58.565;
+        setInterval(() => {
+            lat += (Math.random() - 0.5) * 0.001;
+            lng += (Math.random() - 0.5) * 0.001;
+            console.log("📤 Enviando nueva posición:", lat, lng);
+            connection.invoke("EnviarUbicacion", pedidoId, lat, lng) //invoke envía las coordenadas al servidor; el servidor replica RecibirUbicacion a todos los clientes del grupo
+                .catch(err => console.error("❌ Error enviando ubicación:", err));
+        }, 2000); //Bloque de prueba: espera 3s y cada 2s genera coordenadas pseudo-aleatorias y llama EnviarUbicacion en el hub.
+    }, 3000); //Se podrían cambiar por tiempos estimados de llegada reales
+</script>
+
+      

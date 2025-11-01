@@ -1,0 +1,273 @@
+﻿@{
+    ViewData["Title"] = "Pedidos Ya";
+}
+
+<style>
+    .pedidos-container {
+        background-color: #0f0f0f;
+        color: #fff;
+        font-family: 'Segoe UI', sans-serif;
+        padding: 20px 40px;
+        min-height: 100vh;
+    }
+
+    .pedidos-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 30px;
+    }
+
+        .pedidos-header h1 {
+            font-size: 1.6rem;
+            font-weight: bold;
+        }
+
+        .pedidos-header input {
+            background-color: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 10px 15px;
+            color: #fff;
+            width: 280px;
+        }
+
+    /* ===== CATEGORÍAS ===== */
+    .categorias {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 40px;
+    }
+
+    .categoria {
+        background-color: #1a1a1a;
+        border-radius: 12px;
+        padding: 16px;
+        width: 140px;
+        text-align: center;
+        transition: background-color 0.3s, transform 0.2s;
+        cursor: pointer;
+    }
+
+        .categoria:hover {
+            background-color: #222;
+            transform: scale(1.05);
+        }
+
+        .categoria img {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            background-color: #fff;
+        }
+
+        .categoria span {
+            font-size: 0.95rem;
+        }
+
+    /* ===== SUGERENCIAS ===== */
+    .sugerencias {
+        margin-bottom: 50px;
+    }
+
+        .sugerencias h2 {
+            font-size: 1.3rem;
+            margin-bottom: 16px;
+        }
+
+    .sugerencia-lista {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .sugerencia {
+        flex: 1 1 240px;
+        background-color: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 12px;
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: background-color 0.3s, transform 0.2s;
+    }
+
+        .sugerencia:hover {
+            background-color: #222;
+            transform: translateY(-3px);
+        }
+
+        .sugerencia img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background-color: #fff;
+        }
+
+        .sugerencia span {
+            font-weight: 500;
+        }
+
+    /* ===== PROMOCIONES ===== */
+    .promociones h2 {
+        font-size: 1.3rem;
+        margin-bottom: 20px;
+    }
+
+    .promo-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+    }
+
+    .promo-card {
+        border-radius: 14px;
+        overflow: hidden;
+        position: relative;
+        height: 160px;
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 16px;
+        font-weight: 500;
+        background-size: cover;
+        background-position: center;
+        transition: transform 0.3s;
+    }
+
+        .promo-card:hover {
+            transform: scale(1.03);
+        }
+
+        .promo-card::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(0,0,0,0.1) 20%, rgba(0,0,0,0.8) 100%);
+        }
+
+    .promo-text {
+        position: relative;
+        z-index: 1;
+    }
+
+    .promo-yellow {
+        background-image: url('https://images.unsplash.com/photo-1600891963933-960c6a82f6ca?w=800');
+    }
+
+    .promo-pink {
+        background-image: url('https://images.unsplash.com/photo-1607082349566-187342175e2f?w=800');
+    }
+
+    .promo-blue {
+        background-image: url('https://images.unsplash.com/photo-1607083207092-56a2ef8f1e09?w=800');
+    }
+
+    .promo-red {
+        background-image: url('https://images.unsplash.com/photo-1586201375761-83865001e31c?w=800');
+    }
+</style>
+
+<div class="pedidos-container">
+    <div class="pedidos-header">
+        <h1>🍔 Hola, ¿qué vas a pedir hoy?</h1>
+        <input type="text" placeholder="Buscar locales o productos..." />
+    </div>
+
+    <!-- Categorías -->
+    <div class="categorias">
+        <div class="categoria">
+            <a href="/PedidosYa/ServicioSeleccionado">
+                <img src="https://cdn-icons-png.flaticon.com/512/3075/3075977.png" alt="Restaurantes">
+            </a>
+            <span>Restaurantes</span>
+        </div>
+        <div class="categoria">
+            <a href="/PedidosYa/ServicioSeleccionado">
+                <img src="https://cdn-icons-png.flaticon.com/512/3171/3171065.png" alt="Mercados">
+            </a>
+            <span>Mercados</span>
+        </div>
+        <div class="categoria">
+            <a href="/PedidosYa/ServicioSeleccionado">
+                <img src="https://cdn-icons-png.flaticon.com/512/415/415682.png" alt="Helados">
+            </a>
+            <span>Helados</span>
+        </div>
+        <div class="categoria">
+            <a href="/PedidosYa/ServicioSeleccionado">
+                <img src="https://cdn-icons-png.flaticon.com/512/3082/3082018.png" alt="Kioscos">
+            </a>
+            <span>Kioscos</span>
+        </div>
+        <div class="categoria">
+            <a href="/PedidosYa/ServicioSeleccionado">
+                <img src="https://cdn-icons-png.flaticon.com/512/2909/2909899.png" alt="Bebidas">
+            </a>
+            <span>Bebidas</span>
+        </div>
+        <div class="categoria">
+            <a href="/PedidosYa/ServicioSeleccionado">
+                <img src="https://cdn-icons-png.flaticon.com/512/4320/4320418.png" alt="Farmacias">
+            </a>
+            <span>Farmacias</span>
+        </div>
+    </div>
+
+
+    <!-- Sugerencias -->
+    <div class="sugerencias">
+        <h2>Te sugerimos</h2>
+        <div class="sugerencia-lista">
+            <div class="sugerencia">
+                <img src="https://images.unsplash.com/photo-1565958011705-44e21161e87d?w=200" alt="">
+                <span>Lo de Jesús Parrilla - Palermo</span>
+            </div>
+            <div class="sugerencia">
+                <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=200" alt="">
+                <span>Paluchino Café</span>
+            </div>
+            <div class="sugerencia">
+                <img src="https://images.unsplash.com/photo-1586796677705-5eaa67d1f72c?w=200" alt="">
+                <span>Valence Recoleta</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Promociones -->
+    <div class="promociones">
+        <h2>No te pierdas estas promociones</h2>
+        <div class="promo-grid">
+            <div class="promo-card promo-yellow">
+                <div class="promo-text">
+                    <h3>🍽️ Restaurantes</h3>
+                    <p>¡Disfrutá estas promociones!</p>
+                </div>
+            </div>
+            <div class="promo-card promo-pink">
+                <div class="promo-text">
+                    <h3>💳 Medios de pago</h3>
+                    <p>Conocé todas las opciones de ahorro</p>
+                </div>
+            </div>
+            <div class="promo-card promo-blue">
+                <div class="promo-text">
+                    <h3>🛒 Mercados</h3>
+                    <p>Aprovechá las promos y ahorrá</p>
+                </div>
+            </div>
+            <div class="promo-card promo-red">
+                <div class="promo-text">
+                    <h3>🍕 Comidas rápidas</h3>
+                    <p>¡Tus locales favoritos al instante!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

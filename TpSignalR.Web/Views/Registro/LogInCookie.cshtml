@@ -1,0 +1,81 @@
+﻿@{
+    ViewData["Title"] = "Login exitoso";
+    var userId = TempData.Peek("UserId") ?? "No disponible";
+}
+
+<div class="login-success-container">
+    <div class="login-success-card">
+        <h1>@ViewData["Title"]</h1>
+        <p class="msg">Inicio de sesión correcto 🎉</p>
+        <p class="userid">Tu ID de usuario es: <span>@userId</span></p>
+        <a href="/Inicio/Home" class="btn-home">🏠 Ir a Home</a>
+    </div>
+</div>
+
+@section Scripts {
+    <style>
+        .login-success-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 70vh;
+            background-color: transparent; /* mantiene tu fondo general */
+        }
+
+        .login-success-card {
+            background-color: #1a1a1a;
+            border-radius: 16px;
+            padding: 50px;
+            box-shadow: 0 0 25px rgba(0,0,0,0.6);
+            text-align: center;
+            max-width: 450px;
+            width: 100%;
+            transition: transform 0.3s;
+        }
+
+            .login-success-card:hover {
+                transform: translateY(-5px);
+            }
+
+            .login-success-card h1 {
+                color: #00bfa6;
+                font-size: 1.9rem;
+                font-weight: 700;
+                margin-bottom: 15px;
+            }
+
+            .login-success-card .msg {
+                color: #ccc;
+                font-size: 1rem;
+                margin-bottom: 20px;
+            }
+
+            .login-success-card .userid {
+                font-size: 1.1rem;
+                color: #bbb;
+                margin-bottom: 35px;
+            }
+
+                .login-success-card .userid span {
+                    color: #00ffcc;
+                    font-weight: bold;
+                }
+
+        .btn-home {
+            display: inline-block;
+            background-color: #00bfa6;
+            color: #fff;
+            font-weight: 600;
+            text-decoration: none;
+            padding: 10px 24px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+            .btn-home:hover {
+                background-color: #00e6b8;
+                color: #0a0a0a;
+                transform: scale(1.05);
+            }
+    </style>
+}
