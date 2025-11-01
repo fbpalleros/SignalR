@@ -15,12 +15,10 @@ namespace TpSignalR.Logica
     public class MensajeLogica : IMensajeLogica
     {
         private readonly ServicioRepartoContext _context;
-        private readonly IMensajeNotifier _notifier;
 
-        public MensajeLogica(ServicioRepartoContext context, IMensajeNotifier notifier = null)
+        public MensajeLogica(ServicioRepartoContext context)
         {
             _context = context;
-            _notifier = notifier;
         }
 
         public List<Mensaje> ObtenerTodos()
@@ -41,12 +39,6 @@ namespace TpSignalR.Logica
 
             _context.Mensajes.Add(mensaje);
             _context.SaveChanges();
-
-            // Notify asynchronously if notifier provided (fire-and-forget safe)
-            if (_notifier != null)
-            {
-                _ = _notifier.NotifyMensajeAsync(mensaje);
-            }
 
             return mensaje;
         }
