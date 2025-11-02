@@ -10,12 +10,12 @@ namespace TpSignalR.Entidades
 
         [Required]
         [MaxLength(500)]
-        public string Texto { get; set; }
+        public string Texto { get; set; } = string.Empty;
 
         [Required]
         public DateTime Fecha { get; set; }
 
         [MaxLength(50)]
-        public string Usuario { get; set; }
+        public string Usuario { get; set; } = string.Empty;
     }
 }

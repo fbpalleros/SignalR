@@ -23,7 +23,7 @@ namespace TpSignalR.Entidades
         public decimal PrecioUnitario { get; set; }
 
         // Relaciones
-        public Pedido Pedido { get; set; }
-        public Producto Producto { get; set; }
+        public Pedido Pedido { get; set; } = null!;
+        public Producto Producto { get; set; } = null!;
     }
 }

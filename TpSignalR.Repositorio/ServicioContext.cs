@@ -6,7 +6,7 @@ namespace TpSignalR.Repositorio
 {
     public class ServicioContext : DbContext
     {
-        public ServicioContext(DbContextOptions<InicializacionContext> options) : base(options)
+        public ServicioContext(DbContextOptions<ServicioContext> options) : base(options)
         {
         }
         public DbSet<Servicio> Servicios{ get; set; }

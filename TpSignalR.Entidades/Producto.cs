@@ -14,15 +14,15 @@ namespace TpSignalR.Entidades
 
         [Required]
         [MaxLength(100)]
-        public string Nombre { get; set; }
+        public string Nombre { get; set; } = string.Empty;
 
         [MaxLength(50)]
-        public string Categoria { get; set; }
+        public string Categoria { get; set; } = string.Empty;
 
         [Required]
         public decimal Precio { get; set; }
 
         // Relación
-        public Comercio Comercio { get; set; }
+        public Comercio Comercio { get; set; } = null!;
     }
 }

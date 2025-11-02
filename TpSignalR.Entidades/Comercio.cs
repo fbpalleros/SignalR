@@ -9,7 +9,7 @@ namespace TpSignalR.Entidades
 
         [Required]
         [MaxLength(100)]
-        public string Nombre { get; set; }
+        public string Nombre { get; set; } = string.Empty;
 
         [Required]
         public decimal Latitud { get; set; }
@@ -18,13 +18,13 @@ namespace TpSignalR.Entidades
         public decimal Longitud { get; set; }
 
         [MaxLength(500)]
-        public string CategoriasMenu { get; set; }
+        public string CategoriasMenu { get; set; } = string.Empty;
 
         [MaxLength(1000)]
-        public string PreciosMenu { get; set; }
+        public string PreciosMenu { get; set; } = string.Empty;
 
-        public ICollection<Producto> Productos { get; set; }
-        public ICollection<Pedido> Pedidos { get; set; }
+        public ICollection<Producto> Productos { get; set; } = new List<Producto>();
+        public ICollection<Pedido> Pedidos { get; set; } = new List<Pedido>();
     
     }
 }

@@ -14,7 +14,7 @@ namespace TpSignalR.Entidades
 
             [Required]
             [MaxLength(50)]
-            public string Nombre { get; set; }
+            public string Nombre { get; set; } = string.Empty;
 
         }
     

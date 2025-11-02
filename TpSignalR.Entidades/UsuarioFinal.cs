@@ -9,18 +9,18 @@ namespace TpSignalR.Entidades
 
         [Required]
         [MaxLength(100)]
-        public string Nombre { get; set; }
+        public string Nombre { get; set; } = string.Empty;
 
         [Required]
         [MaxLength(200)]
-        public string Direccion { get; set; }
+        public string Direccion { get; set; } = string.Empty;
 
         public decimal Latitud { get; set; }
         public decimal Longitud { get; set; }
 
         [MaxLength(500)]
-        public string Pedido { get; set; } // Descripción breve del pedido
+        public string Pedido { get; set; } = string.Empty; // Descripción breve del pedido
 
-        public ICollection<Pedido> Pedidos { get; set; }
+        public ICollection<Pedido> Pedidos { get; set; } = new List<Pedido>();
     }
 }
