@@ -1,0 +1,148 @@
+@model List<TpSignalR.Entidades.Partido>
+
+@{
+    ViewData["Title"] = "Promiedos - Resultados";
+}
+
+<style>
+    .promiedos-container {
+        min-height: 100vh;
+        background-color: #013220;
+        color: #fff;
+        font-family: 'Segoe UI', sans-serif;
+        padding: 40px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .partidos-wrapper {
+        max-width: 900px;
+        width: 100%;
+    }
+
+    .back-button {
+        background-color: #024a2e;
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: background-color 0.3s;
+        display: inline-block;
+        margin-bottom: 20px;
+    }
+
+        .back-button:hover {
+            background-color: #013d27;
+            color: #9aff9a;
+        }
+
+    .partidos-container {
+        background-color: #024a2e;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .titulo-liga {
+        background-color: #013d27;
+        padding: 16px 24px;
+        font-weight: bold;
+        font-size: 1.1rem;
+        border-bottom: 2px solid #00cc66;
+    }
+
+    .partido {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 24px;
+        border-bottom: 1px solid #036b47;
+        transition: background-color 0.2s;
+    }
+
+        .partido:hover {
+            background-color: #035a3d;
+        }
+
+        .partido:last-child {
+            border-bottom: none;
+        }
+
+    .equipo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 40%;
+    }
+
+        .equipo img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #fff;
+            padding: 2px;
+        }
+
+        .equipo span {
+            font-size: 1rem;
+        }
+
+    .marcador {
+        font-weight: bold;
+        font-size: 1.3rem;
+        width: 15%;
+        text-align: center;
+        color: #9aff9a;
+    }
+
+    .estado {
+        color: #aaa;
+        font-size: 0.9rem;
+        width: 10%;
+        text-align: right;
+        text-transform: capitalize;
+    }
+
+    .no-partidos {
+        padding: 40px;
+        text-align: center;
+        color: #aaa;
+    }
+</style>
+
+<div class="promiedos-container">
+    <div class="partidos-wrapper">
+        <a href="@Url.Action("PromiedosLobby", "Promiedos")" class="back-button">← Volver</a>
+        
+        <div class="partidos-container">
+            <div class="titulo-liga">🟢 Fecha 12 - Resultados Finales</div>
+
+            @if (Model != null && Model.Any())
+            {
+                @foreach (var partido in Model)
+                {
+                    <div class="partido">
+                        <div class="equipo">
+                            <img src="https://via.placeholder.com/32" alt="@partido.EquipoLocal">
+                            <span>@partido.EquipoLocal</span>
+                        </div>
+                        <div class="marcador">@partido.GolesLocal - @partido.GolesVisitante</div>
+                        <div class="equipo">
+                            <img src="https://via.placeholder.com/32" alt="@partido.EquipoVisitante">
+                            <span>@partido.EquipoVisitante</span>
+                        </div>
+                        <div class="estado">@partido.Estado</div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="no-partidos">
+                    No hay partidos disponibles en este momento.
+                </div>
+            }
+        </div>
+    </div>
+</div>

@@ -21,6 +21,8 @@ namespace TpSignalR.Repositorio
         public DbSet<PedidoDetalle> PedidoDetalle { get; set; }
         public DbSet<Usuario> Usuarios { get; set; }
         public DbSet<Mensaje> Mensajes { get; set; }
+        public DbSet<Partido> Partidos { get; set; }
+        public DbSet<Gol> Goles { get; set; }
         // ==========================
         // CONFIGURACIÓN DEL MODELO
         // ==========================
@@ -80,6 +82,24 @@ namespace TpSignalR.Repositorio
             modelBuilder.Entity<Mensaje>()
                 .Property(m => m.Texto)
                 .HasMaxLength(500);
+
+            // ---- PARTIDO ----
+            modelBuilder.Entity<Partido>()
+                .HasMany(p => p.Goles)
+                .WithOne(g => g.Partido)
+                .HasForeignKey(g => g.PartidoId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Ignore calculated properties
+            modelBuilder.Entity<Partido>()
+                .Ignore(p => p.GolesLocal)
+                .Ignore(p => p.GolesVisitante)
+                .Ignore(p => p.Estado);
+
+            // ---- GOL ----
+            modelBuilder.Entity<Gol>()
+                .Property(g => g.Equipo)
+                .HasMaxLength(20);
         }
     }
 }

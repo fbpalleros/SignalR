@@ -6,13 +6,13 @@ namespace TpSignalR.Web.Controllers
 {
     public class PromiedosController : Controller
     {
-
-
         private readonly IUsuarioLogica barcosLogica;
+        private readonly IPartidoLogica partidoLogica;
 
-        public PromiedosController(IUsuarioLogica barcosLogica)
+        public PromiedosController(IUsuarioLogica barcosLogica, IPartidoLogica partidoLogica)
         {
             this.barcosLogica = barcosLogica;
+            this.partidoLogica = partidoLogica;
         }
 
         public IActionResult Promiedos()
@@ -20,6 +20,17 @@ namespace TpSignalR.Web.Controllers
             return View();
         }
         public IActionResult PromiedosLobby()
+        {
+            return View();
+        }
+
+        public IActionResult PromiedosUser()
+        {
+            var partidos = partidoLogica.ObtenerTodosLosPartidos();
+            return View(partidos);
+        }
+
+        public IActionResult PromiedosAdmin()
         {
             return View();
         }
