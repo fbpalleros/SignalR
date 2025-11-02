@@ -48,5 +48,29 @@ namespace TpSignalR.Web.Controllers
             _pedidos.CrearPedido(1, 1, 1);
             return RedirectToAction("FinalizarCompra");
         }
+
+        public IActionResult PYLobby()
+        {
+            // Usar ruta física para evitar búsqueda por nombre de vista
+            return View("~/Views/PedidosYa/PYLobby.cshtml");
+        }
+
+
+
+
+        public IActionResult Restaurantes()
+        {
+            var restaurantes = _pedidos.ObtenerComercios()
+                .OrderBy(r => r.Nombre)
+                .ToList();
+
+            return View(restaurantes);
+        }
+
+
+
+
+
+
     }
 }

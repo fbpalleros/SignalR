@@ -1,5 +1,5 @@
-@{
-    ViewData["Title"] = "PedidosYa - Selecciona tu servicio";
+﻿@{
+    ViewData["Title"] = "Lobby";
 }
 
 <style>
@@ -39,13 +39,15 @@
         border-radius: 12px;
         overflow: hidden;
         text-decoration: none;
-        transition: transform 0.3s, box-shadow 0.3s;
+        transition: all 0.4s ease;
         cursor: pointer;
+        filter: grayscale(100%) brightness(0.6); /* 🔸 Apagadas por defecto */
     }
 
         .service-card:hover {
             transform: translateY(-10px);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            filter: none; /* 🔸 Recupera el color original */
         }
 
     .card-admin {
@@ -54,6 +56,10 @@
 
     .card-user {
         background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    .card-client {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
     }
 
     .card-image {
@@ -99,23 +105,27 @@
     <h1 class="selection-title">Selecciona tu servicio</h1>
 
     <div class="cards-container">
-        <a href="@Url.Action("PromiedosAdmin", "Promiedos")" class="service-card card-admin">
-            <div class="card-image">
-                🔐
-            </div>
+        <a href="@Url.Action("PedidosYaLobby", "PedidosYa")" class="service-card card-admin">
+            <div class="card-image">🔐</div>
             <div class="card-content">
-                <h2 class="card-title">Admin</h2>
-                <p class="card-description">Gestiona partidos y resultados en tiempo real</p>
+                <h2 class="card-title">Cliente</h2>
+                <p class="card-description">Realizar pedidos y compras</p>
             </div>
         </a>
 
-        <a href="@Url.Action("PromiedosUser", "Promiedos")" class="service-card card-user">
-            <div class="card-image">
-                👤
-            </div>
+        <a href="@Url.Action("PedidosYaLobby", "PedidosYa")" class="service-card card-user">
+            <div class="card-image">👤</div>
             <div class="card-content">
-                <h2 class="card-title">Usuario</h2>
-                <p class="card-description">Consulta resultados y noticias de fútbol</p>
+                <h2 class="card-title">Repartidor</h2>
+                <p class="card-description">Tomar envíos y realizar entregas</p>
+            </div>
+        </a>
+
+        <a href="@Url.Action("PedidosYaLobby", "PedidosYa")" class="service-card card-client">
+            <div class="card-image">💼</div>
+            <div class="card-content">
+                <h2 class="card-title">Tienda</h2>
+                <p class="card-description">Catálogo de ventas</p>
             </div>
         </a>
     </div>

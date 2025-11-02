@@ -26,6 +26,9 @@ namespace TpSignalR.Logica
 
         // Consultar información de un comercio
         Comercio ObtenerComercioPorId(int idComercio);
+
+        // Listar todos los comercios (restaurantes)
+        List<Comercio> ObtenerComercios();
     }
 
 
@@ -102,5 +105,11 @@ namespace TpSignalR.Logica
         {
             throw new NotImplementedException();
         }
+
+        public List<Comercio> ObtenerComercios()
+        {
+            return _context.Comercio.ToList();
+        }
+
     }
 }
