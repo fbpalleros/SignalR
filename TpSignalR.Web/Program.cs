@@ -19,6 +19,7 @@ builder.Services.AddScoped<IUsuarioLogica, UsuarioLogica>();
 builder.Services.AddScoped<IServicioLogica, ServicioLogica>();
 builder.Services.AddScoped<IMensajeLogica, MensajeLogica>();
 builder.Services.AddScoped<IPedidosYaLogica, PedidosYaLogica>();
+builder.Services.AddScoped<IPartidoLogica, PartidoLogica>();
 // Registrar el notifier que usa IHubContext<ChatHub>
 builder.Services.AddDbContext<InicializacionContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("TpSignalRConnection")));

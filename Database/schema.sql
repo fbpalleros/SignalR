@@ -284,3 +284,72 @@ FOREIGN KEY (producto_id) REFERENCES Producto(id);
 
 SELECT *
 FROM Pedido
+GO
+
+-- =============================
+-- PROMIEDOS TABLES
+-- =============================
+
+-- =============================
+-- TABLA: Partidos
+-- =============================
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Partidos')
+BEGIN
+    CREATE TABLE Partidos (
+        Id INT PRIMARY KEY IDENTITY(1,1),
+        EquipoLocal NVARCHAR(100) NOT NULL,
+        EquipoVisitante NVARCHAR(100) NOT NULL,
+        AmarillasEquipoLocal INT DEFAULT 0,
+        AmarillasEquipoVisitante INT DEFAULT 0,
+        RojasEquipoLocal INT DEFAULT 0,
+        RojasEquipoVisitante INT DEFAULT 0,
+        HorarioPartido DATETIME NOT NULL,
+        FechaCreacion DATETIME DEFAULT GETDATE()
+    );
+    PRINT '✓ Table Partidos created';
+END
+GO
+
+-- =============================
+-- TABLA: Goles
+-- =============================
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Goles')
+BEGIN
+    CREATE TABLE Goles (
+        Id INT PRIMARY KEY IDENTITY(1,1),
+        PartidoId INT NOT NULL,
+        Minuto INT NOT NULL,
+        Jugador NVARCHAR(100) NOT NULL,
+        Equipo NVARCHAR(20) NOT NULL, -- 'local' o 'visitante'
+        FechaGol DATETIME DEFAULT GETDATE(),
+        FOREIGN KEY (PartidoId) REFERENCES Partidos(Id) ON DELETE CASCADE,
+        CONSTRAINT CK_Equipo CHECK (Equipo IN ('local', 'visitante'))
+    );
+    PRINT '✓ Table Goles created';
+END
+GO
+
+-- =============================
+-- DATOS DE EJEMPLO - PARTIDOS
+-- =============================
+IF NOT EXISTS (SELECT * FROM Partidos WHERE EquipoLocal = 'San Lorenzo')
+BEGIN
+    INSERT INTO Partidos (EquipoLocal, EquipoVisitante, AmarillasEquipoLocal, AmarillasEquipoVisitante, RojasEquipoLocal, RojasEquipoVisitante, HorarioPartido)
+    VALUES 
+        ('San Lorenzo', 'Riestra', 3, 2, 0, 0, DATEADD(DAY, -1, GETDATE())),
+        ('Godoy Cruz', 'San Martín (SJ)', 1, 4, 0, 1, DATEADD(DAY, -1, GETDATE())),
+        ('Newell''s', 'Unión', 2, 2, 0, 0, DATEADD(DAY, -1, GETDATE())),
+        ('Aldosivi', 'Independiente', 3, 3, 1, 0, DATEADD(DAY, -1, GETDATE())),
+        ('Boca Juniors', 'River Plate', 4, 3, 0, 0, DATEADD(DAY, -1, GETDATE()));
+    PRINT '✓ Sample partidos inserted';
+END
+GO
+
+PRINT '';
+PRINT '========================================';
+PRINT '  PROMIEDOS TABLES READY!';
+PRINT '========================================';
+PRINT '  • Partidos table created';
+PRINT '  • Goles table created';
+PRINT '  • Sample data inserted';
+PRINT '========================================';
