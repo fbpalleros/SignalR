@@ -1,0 +1,132 @@
+﻿@{
+    ViewData["Title"] = "Lobby";
+}
+
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    .selection-container {
+        min-height: 100vh;
+        background-color: #1a1a1a;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 40px 20px;
+    }
+
+    .selection-title {
+        color: #fff;
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 60px;
+        text-align: center;
+    }
+
+    .cards-container {
+        display: flex;
+        gap: 40px;
+        flex-wrap: wrap;
+        justify-content: center;
+        max-width: 1200px;
+    }
+
+    .service-card {
+        width: 350px;
+        border-radius: 12px;
+        overflow: hidden;
+        text-decoration: none;
+        transition: all 0.4s ease;
+        cursor: pointer;
+        filter: grayscale(100%) brightness(0.6); /* 🔸 Apagadas por defecto */
+    }
+
+        .service-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            filter: none; /* 🔸 Recupera el color original */
+        }
+
+    .card-admin {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .card-user {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    .card-client {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    }
+
+    .card-image {
+        height: 200px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 5rem;
+        background: rgba(0, 0, 0, 0.1);
+    }
+
+    .card-content {
+        padding: 24px;
+        background: rgba(0, 0, 0, 0.2);
+    }
+
+    .card-title {
+        color: #fff;
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 0 0 10px 0;
+    }
+
+    .card-description {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 0.95rem;
+        margin: 0;
+    }
+
+    @@media (max-width: 768px) {
+        .cards-container {
+            gap: 30px;
+        }
+
+        .service-card {
+            width: 100%;
+            max-width: 350px;
+        }
+    }
+</style>
+
+<div class="selection-container">
+    <h1 class="selection-title">Selecciona tu servicio</h1>
+
+    <div class="cards-container">
+        <a href="@Url.Action("PedidosYaLobby", "PedidosYa")" class="service-card card-admin">
+            <div class="card-image">🔐</div>
+            <div class="card-content">
+                <h2 class="card-title">Cliente</h2>
+                <p class="card-description">Realizar pedidos y compras</p>
+            </div>
+        </a>
+
+        <a href="@Url.Action("PedidosYaLobby", "PedidosYa")" class="service-card card-user">
+            <div class="card-image">👤</div>
+            <div class="card-content">
+                <h2 class="card-title">Repartidor</h2>
+                <p class="card-description">Tomar envíos y realizar entregas</p>
+            </div>
+        </a>
+
+        <a href="@Url.Action("PedidosYaLobby", "PedidosYa")" class="service-card card-client">
+            <div class="card-image">💼</div>
+            <div class="card-content">
+                <h2 class="card-title">Tienda</h2>
+                <p class="card-description">Catálogo de ventas</p>
+            </div>
+        </a>
+    </div>
+</div>
