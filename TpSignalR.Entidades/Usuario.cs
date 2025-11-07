@@ -12,7 +12,9 @@ namespace TpSignalR.Entidades
         [MaxLength(50)]
         public string Nombre { get; set; }
 
-        public float Latitud { get; set; }
-        public float Longitud { get; set; }
+        public string Rol { get; set; }
+
+        public double Latitud { get; set; }
+        public double Longitud { get; set; }
     }
 }

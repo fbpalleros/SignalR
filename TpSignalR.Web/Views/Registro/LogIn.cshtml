@@ -1,4 +1,7 @@
-﻿<body>
+﻿@{
+    Layout = null;
+}
+<body>
     <style>
         :root {
             --bg: #0f1724; /* fondo general (oscuro) */
@@ -156,7 +159,16 @@
             <form id="loginForm" method="POST" action="/Registro/LogInCookie" autocomplete="off" novalidate>
                 <div>
                     <label for="username">Nombre de usuario</label>
-                    <input id="username" name="username" class="input" type="text" placeholder="ej: martin" required />
+                    <select id="userId" name="userId" class="input" required>
+                        <option value="">-- Elegí un usuario --</option>
+                        @if (ViewBag.Usuarios != null)
+                        {
+                            foreach (var usuario in ViewBag.Usuarios)
+                            {
+                                <option value="@usuario.Id">@usuario.Nombre</option>
+                            }
+                        }
+                    </select>
                 </div>
 
                 <button class="btn" type="submit">Entrar</button>
@@ -199,15 +211,15 @@
           }
 
           // Optionally: focus on username if ID is present
-          const usernameEl = document.getElementById('username');
-          if (savedId) usernameEl.focus();
-          else document.getElementById('userId').focus();
+          const userSelect = document.getElementById('userId');
+          if (savedId) userSelect.focus();
+          else userSelect.focus();
         });
 
         // On submit: save ID cookie, then allow normal POST
         document.getElementById('loginForm').addEventListener('submit', function(e){
           // validation quick check
-          const uid = document.getElementById('userId').value.trim();
+          const uid = document.getElementById('userId').value;
           if (!uid) {
             // allow browser required to show message
             return;

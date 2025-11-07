@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using TpSignalR.Entidades;
 using TpSignalR.Logica;
 
@@ -14,15 +15,12 @@ namespace TpSignalR.Web.Controllers
         }
 
         [HttpPost]
-        public IActionResult LogInCookie(string username, string userId)
+        public IActionResult LogInCookie(int userId)
         {
-            Console.WriteLine($"Usuario: {username}");
-            Usuario usuarioGenerado = new Usuario
-            {
-                Nombre = username
-            };
-            _registroLogica.registrarUsuario(usuarioGenerado);
-            HttpContext.Session.SetString("NombreUsuario", username);
+            var usuario = _registroLogica.ObtenerPorId(userId);
+            // Guardamos nombre y id en session. No es necesario serializar a JSON para esto.
+            HttpContext.Session.SetString("NombreUsuario", usuario.Nombre);
+            HttpContext.Session.SetInt32("UsuarioId", usuario.Id);
             return RedirectToAction("LogInCookie");
         }
 
@@ -34,6 +32,10 @@ namespace TpSignalR.Web.Controllers
 
         public IActionResult LogIn()
         {
+
+            var clientes = _registroLogica.obtenerTodos();
+            ViewBag.Usuarios = clientes;
+
             return View();
         }
     }
