@@ -183,6 +183,9 @@
     <script>
         const comercioId = 1;
 
+        // Inyecta la lista de estados del servidor en JS (evita hardcode si ya viene del servidor)
+        const estados = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(estados));
+
         const connection = new signalR.HubConnectionBuilder()
             .withUrl("/notificationHub")
             .build();
@@ -194,32 +197,33 @@
             })
             .catch(err => console.error("❌ Error al conectar:", err));
 
-        // === Cuando llega un nuevo pedido ===
         connection.on("NuevoPedido", function (pedido) {
-            if (pedido.comercioId !== comercioId) return;
+            console.log("Pedido recibido desde Hub:", pedido); // <<-- inspeccionar la forma del objeto
+            if (!pedido || pedido.comercioId !== comercioId) return;
 
             const tbody = document.querySelector(".tabla-pedidos tbody");
             const tr = document.createElement("tr");
             tr.classList.add("highlight");
 
+            // Construir options a partir del array de estados, marcando el seleccionado
+            const optionsHtml = estados.map(e =>
+                `<option value="${e}" ${e === (pedido.estado ?? pedido.Estado) ? 'selected' : ''}>${e}</option>`
+            ).join('');
+
             tr.innerHTML = `
-                <td>$${pedido.total}</td>
+                <td>$${(pedido.total ?? pedido.Total) ?? '(sin total)'}</td>
                 <td>
-                    <select class="form-select pedido-estado" data-pedido-id="${pedido.pedidoId}">
-                        <option value="${pedido.estado}" selected>${pedido.estado}</option>
+                    <select class="form-select pedido-estado" data-pedido-id="${pedido.pedidoId ?? pedido.PedidoId}">
+                        ${optionsHtml}
                     </select>
                 </td>
-                <td>${pedido.usuarioFinalId}</td>
-                <td>${pedido.productoNombre ?? '(sin nombre)'}</td>
-                <td>${pedido.productoCategoria ?? '(sin categoría)'}</td>
+                <td>${pedido.usuarioFinalId ?? pedido.UsuarioFinalId ?? '(sin usuario)'}</td>
+                <td>${pedido.productoNombre ?? pedido.ProductoNombre ?? '(sin nombre)'}</td>
+                <td>${pedido.productoCategoria ?? pedido.ProductoCategoria ?? '(sin categoría)'}</td>
             `;
 
             tbody.prepend(tr);
-
-            // Efecto visual
             setTimeout(() => tr.classList.remove("highlight"), 2000);
-
-            // Actualizar tarjetas de estadísticas
             actualizarEstadisticas();
         });
 
