@@ -146,11 +146,6 @@
     connection.start()
         .then(() => console.log("✅ Conectado al hub de comercio."))
         .catch(err => console.error(err));
-        connection.start()
-    .then(() => {
-        console.log("✅ Conectado al hub de comercio.");
-    })
-    .catch(err => console.error("❌ Error al conectar con el hub:", err));
 
     // === EVENTOS DESDE EL SERVIDOR ===
     connection.on("ActualizarEstadisticas", (total, enProceso, ventas) => {
@@ -183,7 +178,7 @@
     }
 
     // === FUNCIÓN PARA CAMBIAR EL ESTADO A "LISTO" ===
-        function cambiarEstado(id) {
+    function cambiarEstado(id) {
         if (connection.state !== "Connected") {
             alert("Esperá un segundo... la conexión con el servidor no está lista.");
             return;
@@ -212,7 +207,7 @@
     document.getElementById("pedidosEnProceso").innerText = pedidosIniciales.filter(p => p.estado === "En proceso").length;
     document.getElementById("ventasDelDia").innerText = `$${pedidosIniciales.reduce((a, b) => a + b.total, 0).toFixed(2)}`;
 
-        function cambiarEstado(id) {
+    function cambiarEstado(id) {
         const row = document.querySelector(`tr[data-id='${id}']`);
         const estadoCell = row.querySelector(".estado");
 

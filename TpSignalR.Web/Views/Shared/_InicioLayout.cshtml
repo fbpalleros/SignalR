@@ -284,7 +284,7 @@
             // Expose a global helper for pages (now accepts optional role)
             window.showNotification = function(type, title, message, timeout, customIcon, role) {
                 try {
-                    timeout = timeout || 5000;
+                    timeout = timeout || 10000;
                     ensureContainer();
                     const container = document.getElementById('toastContainer');
                     if (!container) return;
@@ -396,6 +396,12 @@
                         msgText = (payload || '').toString();
                     }
 
+                    // If server provided an explicit role and it doesn't match this session's role, ignore the notification
+                    if (explicitRole && roleFromSession && explicitRole !== roleFromSession) {
+                        console.log('Skipping Notify: explicit role', explicitRole, 'does not match session role', roleFromSession);
+                        return;
+                    }
+
                     var type = explicitType || 'info';
                     var low = (msgText || '').toLowerCase();
                     if (!explicitType) {
@@ -406,7 +412,7 @@
 
                     var roleToUse = explicitRole || roleFromSession;
 
-                    window.showNotification(type, title, msgText, (payload && payload.timeout) || 5000, (payload && payload.customIcon) || null, roleToUse);
+                    window.showNotification(type, title, msgText, (payload && payload.timeout) || 10000, (payload && payload.customIcon) || null, roleToUse);
                 } catch(e) {
                     console.error('Error handling Notify', e);
                     try { alert(message); } catch(er) { console.warn('alert failed', er); }

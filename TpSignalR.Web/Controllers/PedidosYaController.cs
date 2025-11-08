@@ -50,8 +50,11 @@ namespace TpSignalR.Web.Controllers
         {
             TempData["ProductoSeleccionadoId"] = productoId;
 
-            // Crear el pedido (usuario 1, comercio 1 como ejemplo)
-            var pedido = _pedidos.CrearPedido(1, 1, productoId);
+            // Use logged in user id from session if available
+            var sessionUserId = HttpContext.Session.GetInt32("UsuarioId") ?? 1;
+
+            // Crear el pedido usando el usuario en session
+            var pedido = _pedidos.CrearPedido(sessionUserId, 1, productoId);
 
             try
             {
@@ -72,44 +75,38 @@ namespace TpSignalR.Web.Controllers
                         ComercioId = pedido.ComercioId
                     };
 
-                    // 🔔 Enviar al grupo del comercio correspondiente (si lo necesitás)
+                    // Enviar al grupo del comercio correspondiente para actualizar su UI
                     await _hubContext.Clients.Group($"user-{pedido.ComercioId}")
                         .SendAsync("NuevoPedido", pedidoInfo);
 
                     System.Console.WriteLine($"✅ Nuevo pedido enviado por SignalR al grupo user-{pedido.ComercioId}");
 
-                    // Enviar notificaciones tailor-made a usuarios 1..6 según rol
+                    // Enviar notificaciones estructuradas a comercios y repartidores, y al cliente que creó el pedido
                     var comercioIds = new[] { 1, 4 };
-                    var clienteIds = new[] { 2, 6 };
                     var repartidorIds = new[] { 3, 5 };
 
-                    // Build messages
                     string productName = producto.Nombre ?? "(producto)";
 
-                    // Event: pedido creado
                     // Comercio: Tienes un nuevo pedido de "{producto}"
                     foreach (var cid in comercioIds)
                     {
-                        var msg = $"Tienes un nuevo pedido de \"{productName}\"";
-                        _ = _hubContext.Clients.Group($"user-{cid}").SendAsync("Notify", msg)
-                            .ContinueWith(t => { if (t.IsFaulted) System.Console.WriteLine($"❌ Notify error user-{cid}: {t.Exception?.GetBaseException().Message}"); }, TaskContinuationOptions.OnlyOnFaulted);
+                        var payload = new { role = "comercio", title = "Nuevo pedido", message = $"Tienes un nuevo pedido de \"{productName}\"" };
+                        _ = _hubContext.Clients.Group($"user-{cid}").SendAsync("Notify", payload)
+                            .ContinueWith(t => { if (t.IsFaulted) System.Console.WriteLine($"❌ Notify error user-{cid}: {t.Exception?.GetBaseException().Message}"); }, System.Threading.Tasks.TaskContinuationOptions.OnlyOnFaulted);
                     }
 
-                    // Repartidor: Tienes un pedido nuevo para entragar
+                    // Repartidor: Tienes un pedido nuevo para entregar
                     foreach (var rid in repartidorIds)
                     {
-                        var msg = $"Tienes un pedido nuevo para entragar";
-                        _ = _hubContext.Clients.Group($"user-{rid}").SendAsync("Notify", msg)
-                            .ContinueWith(t => { if (t.IsFaulted) System.Console.WriteLine($"❌ Notify error user-{rid}: {t.Exception?.GetBaseException().Message}"); }, TaskContinuationOptions.OnlyOnFaulted);
+                        var payload = new { role = "repartidor", title = "Nuevo pedido", message = $"Tienes un pedido nuevo para entregar" };
+                        _ = _hubContext.Clients.Group($"user-{rid}").SendAsync("Notify", payload)
+                            .ContinueWith(t => { if (t.IsFaulted) System.Console.WriteLine($"❌ Notify error user-{rid}: {t.Exception?.GetBaseException().Message}"); }, System.Threading.Tasks.TaskContinuationOptions.OnlyOnFaulted);
                     }
 
-                    // Cliente: si quieres notificar a todos los clientes, enviá a los clienteIds
-                    foreach (var cl in clienteIds)
-                    {
-                        var msg = $"Su pedido \"{productName}\" esta en preparacion"; // on creation -> preparacion
-                        _ = _hubContext.Clients.Group($"user-{cl}").SendAsync("Notify", msg)
-                            .ContinueWith(t => { if (t.IsFaulted) System.Console.WriteLine($"❌ Notify error user-{cl}: {t.Exception?.GetBaseException().Message}"); }, TaskContinuationOptions.OnlyOnFaulted);
-                    }
+                    // Cliente: notify only the session user who created the pedido (structured payload)
+                    var clientPayload = new { role = "cliente", title = "Pedido", message = $"Su pedido \"{productName}\" esta en preparacion" };
+                    _ = _hubContext.Clients.Group($"user-{sessionUserId}").SendAsync("Notify", clientPayload)
+                        .ContinueWith(t => { if (t.IsFaulted) System.Console.WriteLine($"❌ Notify error user-{sessionUserId}: {t.Exception?.GetBaseException().Message}"); }, System.Threading.Tasks.TaskContinuationOptions.OnlyOnFaulted);
 
                     System.Console.WriteLine($"✅ Notificaciones de creación enviadas");
                 }
@@ -144,3 +141,4 @@ namespace TpSignalR.Web.Controllers
         }
     }
 }
+
