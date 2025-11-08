@@ -361,3 +361,19 @@ PRINT '  • Partidos table created';
 PRINT '  • Goles table created';
 PRINT '  • Sample data inserted';
 PRINT '========================================';
+
+-- =============================
+-- UPDATE PEDIDO TABLE NOT NULL
+-- =============================
+
+-- Update existing NULL values to 1
+UPDATE Pedido
+SET producto_id = 1
+WHERE producto_id IS NULL;
+
+-- Make producto_id NOT NULL
+ALTER TABLE Pedido
+ALTER COLUMN producto_id INT NOT NULL;
+
+PRINT '✓ Pedido.producto_id set to NOT NULL with default value 1 for existing records';
+GO
