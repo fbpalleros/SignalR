@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using PedidosYa.Web.Controllers;
 using TpSignalR.Repositorio;
 using TpSignalR.Web.Models;
 using System.Linq;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.SignalR;
 using TpSignalR.Web.Hubs;
 
@@ -27,8 +25,6 @@ namespace TpSignalR.Web.Controllers
 
         public IActionResult DetallePedido()
         {
-            // Redirige a la acción "PruebaIngresoDeDatosDelivery" del controlador "SeguimientoController"
-            // Nota: el nombre del controlador se pasa sin el sufijo "Controller"
             return RedirectToAction("PruebaIngresoDeDatosDelivery", "Seguimiento");
         }
 
@@ -53,6 +49,14 @@ namespace TpSignalR.Web.Controllers
             return View();
         }
 
+        // Helper to send structured notify payload to a group
+        private void SendNotify(int userId, string role, string message, string title = "Pedido")
+        {
+            var payload = new { role = role, title = title, message = message };
+            _ = _hubContext.Clients.Group($"user-{userId}").SendAsync("Notify", payload)
+                .ContinueWith(t => { if (t.IsFaulted) System.Console.WriteLine($"❌ Notify error user-{userId}: {t.Exception?.GetBaseException().Message}"); }, System.Threading.Tasks.TaskContinuationOptions.OnlyOnFaulted);
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult ActualizarEstadoPedido([FromBody] EstadoUpdateModel model)
@@ -65,45 +69,116 @@ namespace TpSignalR.Web.Controllers
             pedido.Estado = model.NuevoEstado;
             _context.SaveChanges();
 
-            // Si el nuevo estado es "buscando repartidor" notificamos al repartidor (usuario id 3)
-            if (!string.IsNullOrEmpty(model.NuevoEstado) && model.NuevoEstado.ToLowerInvariant() == "buscando repartidor")
+            // Obtener nombre de producto para mensajes
+            var producto = _context.Producto.FirstOrDefault(prod => prod.Id == pedido.ProductoId);
+            var productName = producto?.Nombre ?? "(producto)";
+
+            // Cliente real del pedido
+            var clienteUserId = pedido.UsuarioFinalId;
+            var estadoLower = (model.NuevoEstado ?? string.Empty).ToLowerInvariant();
+
+            // IDs de prueba (clientes demo)
+            var demoClienteIds = new[] { 2, 6 };
+
+            // --- ESTADO: PREPARACIÓN ---
+            if (estadoLower.Contains("prep") || estadoLower.Contains("prepar"))
             {
-                // Construir payload con información útil
-                var producto = _context.Producto.FirstOrDefault(prod => prod.Id == pedido.ProductoId);
-                var payload = new ComercioPedidoViewModel
+                var clientMsg = $"Su pedido \"{productName}\" está en preparación";
+
+                // Cliente real
+                SendNotify(clienteUserId, "cliente", clientMsg, "Pedido");
+
+                // Clientes demo
+                foreach (var cid in demoClienteIds)
                 {
-                    PedidoId = pedido.PedidoId,
-                    Total = pedido.Total,
-                    Estado = pedido.Estado,
-                    UsuarioFinalId = pedido.UsuarioFinalId,
-                    ProductoId = pedido.ProductoId,
-                    ProductoNombre = producto?.Nombre,
-                    ProductoCategoria = producto?.Categoria
-                };
+                    if (cid != clienteUserId)
+                        SendNotify(cid, "cliente", clientMsg, "Pedido");
+                }
 
-                // Enviar solo al usuario con id 3 (grupo "user-3") - fire-and-forget
-                _hubContext.Clients.Group($"user-3").SendAsync("NuevoPedido", payload);
+                // Comercios
+                var comercioIds = new[] { 1, 4 };
+                foreach (var cid in comercioIds)
+                {
+                    var msg = $"Se está preparando el pedido \"{productName}\"";
+                    SendNotify(cid, "comercio", msg, "Pedido");
+                }
+
+                // Repartidores
+                var repartidorIds = new[] { 3, 5 };
+                foreach (var rid in repartidorIds)
+                {
+                    var msg = $"Tienes un pedido nuevo para entregar";
+                    SendNotify(rid, "repartidor", msg, "Pedido");
+                }
             }
 
-            // Notificar a todos los usuarios de la app cuando cambia el estado
-            string MapEstadoToMessage(string estado)
+            // --- ESTADO: EN CAMINO ---
+            if (estadoLower.Contains("camino") || estadoLower.Contains("en camino") || estadoLower.Contains("en_camino"))
             {
-                var e = (estado ?? string.Empty).ToLowerInvariant();
-                if (e.Contains("pend")) return "Su pedido esta pendiente";
-                if (e.Contains("camino") || e.Contains("en camino") || e.Contains("en_camino")) return "Su pedido esta en camino";
-                if (e.Contains("entreg") || e.Contains("finaliz")) return "Su pedido ha sido entregado.";
-                return null;
+                var clientMsg = $"Su pedido \"{productName}\" está en camino";
+
+                // Cliente real
+                SendNotify(clienteUserId, "cliente", clientMsg, "Pedido");
+
+                // Clientes demo
+                foreach (var cid in demoClienteIds)
+                {
+                    if (cid != clienteUserId)
+                        SendNotify(cid, "cliente", clientMsg, "Pedido");
+                }
+
+                // Repartidores
+                var repartidorIds = new[] { 3, 5 };
+                foreach (var rid in repartidorIds)
+                {
+                    var msg = $"Estás enviando el pedido \"{productName}\"";
+                    SendNotify(rid, "repartidor", msg, "Pedido");
+                }
+
+                // Comercios
+                var comercioIds = new[] { 1, 4 };
+                foreach (var cid in comercioIds)
+                {
+                    var msg = $"El repartidor ya está enviando el pedido.";
+                    SendNotify(cid, "comercio", msg, "Pedido");
+                }
             }
 
-            var notifyMessage = MapEstadoToMessage(model.NuevoEstado);
-            if (!string.IsNullOrEmpty(notifyMessage))
+            // --- ESTADO: ENTREGADO / FINALIZADO ---
+            if (estadoLower.Contains("entreg") || estadoLower.Contains("finaliz"))
             {
-                // Enviar a todos (fire-and-forget)
-                _hubContext.Clients.All.SendAsync("Notify", notifyMessage);
+                var clientMsg = $"Su pedido \"{productName}\" ha sido entregado.";
+
+                // Cliente real
+                SendNotify(clienteUserId, "cliente", clientMsg, "Pedido");
+
+                // Clientes demo
+                foreach (var cid in demoClienteIds)
+                {
+                    if (cid != clienteUserId)
+                        SendNotify(cid, "cliente", clientMsg, "Pedido");
+                }
+
+                // Repartidores
+                var repartidorIds = new[] { 3, 5 };
+                foreach (var rid in repartidorIds)
+                {
+                    var msg = $"Entregaste el pedido \"{productName}\"";
+                    SendNotify(rid, "repartidor", msg, "Pedido");
+                }
+
+                // Comercios
+                var comercioIds = new[] { 1, 4 };
+                foreach (var cid in comercioIds)
+                {
+                    var msg = $"El pedido de tu tienda ha sido entregado correctamente.";
+                    SendNotify(cid, "comercio", msg, "Pedido");
+                }
             }
 
             return Ok();
         }
+
 
     }
 }

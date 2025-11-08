@@ -26,65 +26,54 @@ namespace TpSignalR.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> AceptarPedido([FromBody] AceptarPedidoModel model)
         {
-            Console.WriteLine("AceptarPedido endpoint invoked");
-            Console.WriteLine($"Request Content-Type: {Request.ContentType}");
-            Console.WriteLine($"Request Verification Token header: {Request.Headers["RequestVerificationToken"]}");
-
             if (model == null)
-            {
-                Console.WriteLine("AceptarPedido: model binding produced null model");
                 return BadRequest(new { error = "Model null" });
-            }
-
-            Console.WriteLine($"AceptarPedido: PedidoId={model.PedidoId}, RepartidorId={model.RepartidorId}");
 
             var pedido = _context.Pedido.FirstOrDefault(p => p.PedidoId == model.PedidoId);
             if (pedido == null) return NotFound();
 
-            // Only allow accepting if it's still looking for a repartidor
-            if (pedido.Estado != "buscando repartidor")
-            {
+            // Solo se puede aceptar si está buscando repartidor
+            if (!string.Equals(pedido.Estado, "buscando repartidor", System.StringComparison.OrdinalIgnoreCase))
                 return Conflict(new { message = "Pedido ya no está disponible" });
-            }
 
-            // Assign repartidor and change state
+            // Asignar repartidor y cambiar estado
             pedido.Estado = "en camino";
             pedido.RepartidorId = model.RepartidorId;
             _context.SaveChanges();
 
-            // Notify all clients so other repartidores remove the pedido from their lists
+            // Notificar a todos los repartidores/clients so other repartidores remove the pedido from their lists
             await _hubContext.Clients.All.SendAsync("PedidoAceptado", pedido.PedidoId);
 
-            // Notificar al usuario final si corresponde (usuarios 2 y 6)
+            // Notificar al usuario final (cliente) asociado al pedido using structured payload
             var userId = pedido.UsuarioFinalId;
-            if (userId == 2 || userId == 6)
+            var clientePayload = new { role = "cliente", title = "Pedido", message = "Su pedido está en camino 🚚" };
+            await _hubContext.Clients.Group($"user-{userId}").SendAsync("Notify", clientePayload);
+
+            // Notificar al comercio correspondiente (ids fijos 1 y 4) with structured payload
+            var comercioIds = new[] { 1, 4 };
+            foreach (var cid in comercioIds)
             {
-                await _hubContext.Clients.Group($"user-{userId}").SendAsync("Notify", "Su pedido esta en camino");
+                var payload = new { role = "comercio", title = "Pedido", message = "El repartidor ya está enviando el pedido 🏍️." };
+                _ = _hubContext.Clients.Group($"user-{cid}").SendAsync("Notify", payload)
+                    .ContinueWith(t => { if (t.IsFaulted) System.Console.WriteLine($"❌ Notify error user-{cid}: {t.Exception?.GetBaseException().Message}"); }, System.Threading.Tasks.TaskContinuationOptions.OnlyOnFaulted);
             }
 
             return Ok();
         }
 
+
         [HttpPost]
         public IActionResult RechazarPedido([FromBody] RechazarPedidoModel model)
         {
-            Console.WriteLine("RechazarPedido endpoint invoked");
-            Console.WriteLine($"Request Content-Type: {Request.ContentType}");
-            Console.WriteLine($"Request Verification Token header: {Request.Headers["RequestVerificationToken"]}");
-
             if (model == null)
             {
-                Console.WriteLine("RechazarPedido: model binding produced null model");
                 return BadRequest(new { error = "Model null" });
             }
-
-            Console.WriteLine($"RechazarPedido: PedidoId={model.PedidoId}, RepartidorId={model.RepartidorId}");
 
             var pedido = _context.Pedido.FirstOrDefault(p => p.PedidoId == model.PedidoId);
             if (pedido == null) return NotFound();
 
-            // Do nothing to the pedido (remains 'buscando repartidor'), but optionally log or notify
-            // Notify the client who rejected (could be used for UX)
+            // No state change performed; keep behavior simple
             return Ok();
         }
     }

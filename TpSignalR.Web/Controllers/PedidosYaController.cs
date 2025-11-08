@@ -50,8 +50,11 @@ namespace TpSignalR.Web.Controllers
         {
             TempData["ProductoSeleccionadoId"] = productoId;
 
-            // Crear el pedido (usuario 1, comercio 1 como ejemplo)
-            var pedido = _pedidos.CrearPedido(1, 1, productoId);
+            // Use logged in user id from session if available
+            var sessionUserId = HttpContext.Session.GetInt32("UsuarioId") ?? 1;
+
+            // Crear el pedido usando el usuario en session
+            var pedido = _pedidos.CrearPedido(sessionUserId, 1, productoId);
 
             try
             {
@@ -71,22 +74,40 @@ namespace TpSignalR.Web.Controllers
                         ComercioId = pedido.ComercioId
                     };
 
-                    // 🔔 Enviar al grupo del comercio correspondiente
+                    // Enviar al grupo del comercio correspondiente para actualizar su UI
                     await _hubContext.Clients.Group($"user-{pedido.ComercioId}")
                         .SendAsync("NuevoPedido", pedidoInfo);
 
                     System.Console.WriteLine($"✅ Nuevo pedido enviado por SignalR al grupo user-{pedido.ComercioId}");
 
-                    // 🔔 Enviar notificación a todos los usuarios (fire-and-forget) indicando pedido pendiente
-                    _ = _hubContext.Clients.All.SendAsync("Notify", "Su pedido esta pendiente")
-                        .ContinueWith(t => {
-                            if (t.IsFaulted)
-                            {
-                                System.Console.WriteLine($"❌ Error enviando Notify a todos: {t.Exception?.GetBaseException().Message}");
-                            }
-                        }, TaskContinuationOptions.OnlyOnFaulted);
+                    // Enviar notificaciones estructuradas a comercios y repartidores, y al cliente que creó el pedido
+                    var comercioIds = new[] { 1, 4 };
+                    var repartidorIds = new[] { 3, 5 };
 
-                    System.Console.WriteLine($"✅ Notificación enviada a todos: Su pedido esta pendiente");
+                    string productName = producto.Nombre ?? "(producto)";
+
+                    // Comercio: Tienes un nuevo pedido de "{producto}"
+                    foreach (var cid in comercioIds)
+                    {
+                        var payload = new { role = "comercio", title = "Nuevo pedido", message = $"Tienes un nuevo pedido de \"{productName}\"" };
+                        _ = _hubContext.Clients.Group($"user-{cid}").SendAsync("Notify", payload)
+                            .ContinueWith(t => { if (t.IsFaulted) System.Console.WriteLine($"❌ Notify error user-{cid}: {t.Exception?.GetBaseException().Message}"); }, System.Threading.Tasks.TaskContinuationOptions.OnlyOnFaulted);
+                    }
+
+                    // Repartidor: Tienes un pedido nuevo para entregar
+                    foreach (var rid in repartidorIds)
+                    {
+                        var payload = new { role = "repartidor", title = "Nuevo pedido", message = $"Tienes un pedido nuevo para entregar" };
+                        _ = _hubContext.Clients.Group($"user-{rid}").SendAsync("Notify", payload)
+                            .ContinueWith(t => { if (t.IsFaulted) System.Console.WriteLine($"❌ Notify error user-{rid}: {t.Exception?.GetBaseException().Message}"); }, System.Threading.Tasks.TaskContinuationOptions.OnlyOnFaulted);
+                    }
+
+                    // Cliente: notify only the session user who created the pedido (structured payload)
+                    var clientPayload = new { role = "cliente", title = "Pedido", message = $"Su pedido \"{productName}\" esta en preparacion" };
+                    _ = _hubContext.Clients.Group($"user-{sessionUserId}").SendAsync("Notify", clientPayload)
+                        .ContinueWith(t => { if (t.IsFaulted) System.Console.WriteLine($"❌ Notify error user-{sessionUserId}: {t.Exception?.GetBaseException().Message}"); }, System.Threading.Tasks.TaskContinuationOptions.OnlyOnFaulted);
+
+                    System.Console.WriteLine($"✅ Notificaciones de creación enviadas");
                 }
             }
             catch (System.Exception ex)
@@ -119,3 +140,4 @@ namespace TpSignalR.Web.Controllers
         }
     }
 }
+
