@@ -48,26 +48,47 @@ namespace TpSignalR.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> solicitarPedido(int productoId)
         {
-            // Aquí podrías crear el pedido usando el productoId. Por ahora guardamos el id en TempData y redirigimos.
             TempData["ProductoSeleccionadoId"] = productoId;
 
-
+            // Crear el pedido (usuario 1, comercio 1 como ejemplo)
             var pedido = _pedidos.CrearPedido(1, 1, productoId);
 
-            // Enviar notificación por SignalR al usuario 1 (POC)
             try
             {
-                var message = $"Pedido creado (ID producto: {productoId}, PedidoId: {pedido?.PedidoId})";
-                await _hubContext.Clients.Group($"user-1").SendAsync("Notify", message);
+                var producto = _pedidos.ObtenerProductosPorComercio(1)
+                    .FirstOrDefault(p => p.Id == productoId);
+
+                if (pedido != null && producto != null)
+                {
+                    var pedidoInfo = new
+                    {
+                        PedidoId = pedido.PedidoId,
+                        Total = producto.Precio,
+                        Estado = pedido.Estado,
+                        UsuarioFinalId = pedido.UsuarioFinalId,
+                        ProductoId = producto.Id,
+                        ProductoNombre = producto.Nombre,
+                        ProductoCategoria = producto.Categoria,
+                        ComercioId = pedido.ComercioId
+                    };
+
+                    // 🔔 Enviar al grupo del comercio correspondiente
+                    await _hubContext.Clients.Group($"user-{pedido.ComercioId}")
+                        .SendAsync("NuevoPedido", pedidoInfo);
+
+                    System.Console.WriteLine($"✅ Nuevo pedido enviado por SignalR al grupo user-{pedido.ComercioId}");
+                }
             }
             catch (System.Exception ex)
             {
-                // Logear o ignorar en POC
-                System.Console.WriteLine($"Error enviando notificación SignalR: {ex.Message}");
+                System.Console.WriteLine($"❌ Error enviando notificación SignalR: {ex.Message}");
             }
 
-            return RedirectToAction("FinalizarCompra");
+            // ✅ en vez de redirigir, devolvemos una respuesta 200 (sin refrescar la vista)
+            return Ok(new { success = true, message = "Pedido enviado correctamente" });
         }
+
+
 
         public IActionResult PYLobby()
         {

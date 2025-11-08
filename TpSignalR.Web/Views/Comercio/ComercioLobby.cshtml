@@ -7,72 +7,250 @@
 
 @Html.AntiForgeryToken()
 
-<h2>Pedidos del Comercio (id = 1)</h2>
+<div class="comercio-container">
+    <div class="comercio-header">
+        <h1>📦 Panel en Tiempo Real del Comercio</h1>
+        <p>Visualizá tus pedidos y actualizá sus estados sin recargar la página</p>
+    </div>
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Total</th>
-            <th>Estado</th>
-            <th>Usuario Id</th>
-            <th>Producto Id</th>
-            <th>Producto Nombre</th>
-            <th>Producto Categoria</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var p in pedidos)
-        {
-            <tr>
-                <td>@p.Total</td>
+    <!-- === TARJETAS DE ESTADÍSTICAS === -->
+    <div class="estadisticas-section">
+        <div class="estadistica-card">
+            <h3>Pedidos Totales</h3>
+            <p id="totalPedidos">@pedidos.Count</p>
+        </div>
+        <div class="estadistica-card">
+            <h3>Pedidos Activos</h3>
+            <p id="pedidosActivos">@pedidos.Count(p => p.Estado != "finalizada")</p>
+        </div>
+        <div class="estadistica-card">
+            <h3>Pedidos Finalizados</h3>
+            <p id="pedidosFinalizados">@pedidos.Count(p => p.Estado == "finalizada")</p>
+        </div>
+    </div>
+
+    <!-- === TABLA DE PEDIDOS === -->
+    <div class="tabla-section">
+        <h2>🧾 Pedidos Recientes</h2>
+        <table class="tabla-pedidos">
+            <thead>
+                <tr>
+                    <th>Total</th>
+                    <th>Estado</th>
+                    <th>Usuario Id</th>
+                    <th>Producto</th>
+                    <th>Categoría</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in pedidos)
+                {
+                    <tr>
+                        <td>$@p.Total</td>
+                        <td>
+                            <select class="form-select pedido-estado" data-pedido-id="@p.PedidoId">
+                                @foreach (var e in estados)
+                                {
+                                    <option value="@e" selected="@(e == p.Estado ? "selected" : null)">@e</option>
+                                }
+                            </select>
+                        </td>
+                        <td>@p.UsuarioFinalId</td>
+                        <td>@p.ProductoNombre</td>
+                        <td>@p.ProductoCategoria</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- === ESTILOS === -->
+<style>
+    body {
+        background-color: #0f0f0f;
+        color: #eaeaea;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .comercio-container {
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 20px 40px;
+        background-color: #111;
+        border-radius: 12px;
+        box-shadow: 0 0 25px rgba(0, 255, 204, 0.1);
+    }
+
+    .comercio-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+        .comercio-header h1 {
+            color: #00bfa6;
+            margin-bottom: 10px;
+        }
+
+    .estadisticas-section {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: space-around;
+        margin-bottom: 40px;
+    }
+
+    .estadistica-card {
+        background-color: #1a1a1a;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        flex: 1;
+        min-width: 200px;
+        transition: transform 0.3s, background 0.3s;
+    }
+
+        .estadistica-card:hover {
+            background-color: #222;
+            transform: translateY(-4px);
+        }
+
+        .estadistica-card h3 {
+            font-size: 1rem;
+            color: #ccc;
+            margin-bottom: 10px;
+        }
+
+        .estadistica-card p {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #00ffcc;
+        }
+
+    .tabla-section {
+        background-color: #1a1a1a;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0, 255, 204, 0.05);
+    }
+
+        .tabla-section h2 {
+            color: #00bfa6;
+            margin-bottom: 20px;
+        }
+
+    .tabla-pedidos {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .tabla-pedidos th, .tabla-pedidos td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #333;
+        }
+
+        .tabla-pedidos th {
+            background-color: #00bfa6;
+            color: #0f0f0f;
+            font-weight: 600;
+        }
+
+        .tabla-pedidos tr:hover {
+            background-color: #222;
+            transition: 0.3s;
+        }
+
+    .form-select {
+        background-color: #1a1a1a;
+        color: #fff;
+        border: 1px solid #333;
+        border-radius: 6px;
+        padding: 6px 10px;
+        font-size: 0.9rem;
+        cursor: pointer;
+    }
+
+    .highlight {
+        background-color: rgba(0, 255, 204, 0.1);
+        transition: background-color 0.5s ease-in-out;
+    }
+</style>
+
+<!-- === SCRIPTS DE SIGNALR === -->
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+    <script>
+        const comercioId = 1;
+
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/notificationHub")
+            .build();
+
+        connection.start()
+            .then(() => {
+                console.log("✅ Conectado al Hub del comercio:", comercioId);
+                connection.invoke("Register", comercioId);
+            })
+            .catch(err => console.error("❌ Error al conectar:", err));
+
+        // === Cuando llega un nuevo pedido ===
+        connection.on("NuevoPedido", function (pedido) {
+            if (pedido.comercioId !== comercioId) return;
+
+            const tbody = document.querySelector(".tabla-pedidos tbody");
+            const tr = document.createElement("tr");
+            tr.classList.add("highlight");
+
+            tr.innerHTML = `
+                <td>$${pedido.total}</td>
                 <td>
-                    <select class="form-select pedido-estado" data-pedido-id="@p.PedidoId">
-                        @foreach (var e in estados)
-                        {
-                            if (e == p.Estado)
-                            {
-                                <text><option value="@e" selected="selected">@e</option></text>
-                            }
-                            else
-                            {
-                                <text><option value="@e">@e</option></text>
-                            }
-                        }
+                    <select class="form-select pedido-estado" data-pedido-id="${pedido.pedidoId}">
+                        <option value="${pedido.estado}" selected>${pedido.estado}</option>
                     </select>
                 </td>
-                <td>@p.UsuarioFinalId</td>
-                <td>@p.ProductoId</td>
-                <td>@p.ProductoNombre</td>
-                <td>@p.ProductoCategoria</td>
-            </tr>
-        }
-    </tbody>
-</table>
+                <td>${pedido.usuarioFinalId}</td>
+                <td>${pedido.productoNombre ?? '(sin nombre)'}</td>
+                <td>${pedido.productoCategoria ?? '(sin categoría)'}</td>
+            `;
 
-@section Scripts {
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            document.querySelectorAll('.pedido-estado').forEach(function (sel) {
-                sel.addEventListener('change', function () {
-                    var pedidoId = this.getAttribute('data-pedido-id');
-                    var nuevoEstado = this.value;
+            tbody.prepend(tr);
 
-                    fetch('/Comercio/ActualizarEstadoPedido', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
-                        },
-                        body: JSON.stringify({ pedidoId: parseInt(pedidoId), nuevoEstado: nuevoEstado })
-                    }).then(function (res) {
-                        if (!res.ok) {
-                            alert('Error al actualizar estado');
-                        }
-                    }).catch(function () {
-                        alert('Error de red al actualizar estado');
-                    });
-                });
-            });
+            // Efecto visual
+            setTimeout(() => tr.classList.remove("highlight"), 2000);
+
+            // Actualizar tarjetas de estadísticas
+            actualizarEstadisticas();
         });
+
+        // === Actualiza estado de pedido manualmente ===
+        document.addEventListener('change', (e) => {
+            if (e.target.classList.contains('pedido-estado')) {
+                const pedidoId = e.target.getAttribute('data-pedido-id');
+                const nuevoEstado = e.target.value;
+
+                fetch('/Comercio/ActualizarEstadoPedido', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                    },
+                    body: JSON.stringify({ pedidoId: parseInt(pedidoId), nuevoEstado })
+                }).then(res => {
+                    if (res.ok) actualizarEstadisticas();
+                });
+            }
+        });
+
+        // === Actualiza las tarjetas ===
+        function actualizarEstadisticas() {
+            const total = document.querySelectorAll('.tabla-pedidos tbody tr').length;
+            const enProceso = [...document.querySelectorAll('.pedido-estado')].filter(s => s.value !== "finalizada").length;
+            const finalizados = total - enProceso;
+
+            document.getElementById("totalPedidos").innerText = total;
+            document.getElementById("pedidosActivos").innerText = enProceso;
+            document.getElementById("pedidosFinalizados").innerText = finalizados;
+        }
     </script>
 }
