@@ -71,7 +71,7 @@ namespace TpSignalR.Web.Controllers
                         ComercioId = pedido.ComercioId
                     };
 
-                    // 🔔 Enviar al grupo del comercio correspondiente
+                    // Enviar al grupo del comercio correspondiente
                     await _hubContext.Clients.Group($"user-{pedido.ComercioId}")
                         .SendAsync("NuevoPedido", pedidoInfo);
 

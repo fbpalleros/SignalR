@@ -55,7 +55,7 @@ namespace TpSignalR.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult ActualizarEstadoPedido([FromBody] EstadoUpdateModel model)
+        public async Task<IActionResult> ActualizarEstadoPedido([FromBody] EstadoUpdateModel model)
         {
             if (model == null) return BadRequest();
 
@@ -63,10 +63,10 @@ namespace TpSignalR.Web.Controllers
             if (pedido == null) return NotFound();
 
             pedido.Estado = model.NuevoEstado;
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             // Si el nuevo estado es "buscando repartidor" notificamos al repartidor (usuario id 3)
-            if (model.NuevoEstado == "buscando repartidor")
+            if (string.Equals(model.NuevoEstado, "buscando repartidor", StringComparison.OrdinalIgnoreCase))
             {
                 // Construir payload con información útil
                 var producto = _context.Producto.FirstOrDefault(prod => prod.Id == pedido.ProductoId);
@@ -82,7 +82,36 @@ namespace TpSignalR.Web.Controllers
                 };
 
                 // Enviar solo al usuario con id 3 (grupo "user-3")
-                _hubContext.Clients.Group($"user-3").SendAsync("NuevoPedido", payload);
+                await _hubContext.Clients.Group($"user-3").SendAsync("NuevoPedido", payload);
+            }
+
+            // Si el nuevo estado es "en camino" notificamos al usuario que realizó el pedido
+            if (string.Equals(model.NuevoEstado, "en camino", StringComparison.OrdinalIgnoreCase))
+            {
+                var producto = _context.Producto.FirstOrDefault(prod => prod.Id == pedido.ProductoId);
+                var comercio = _context.Comercio.FirstOrDefault(c => c.Id == pedido.ComercioId);
+
+                var payloadToUser = new
+                {
+                    PedidoId = pedido.PedidoId,
+                    Estado = pedido.Estado,
+                    Total = pedido.Total,
+                    ProductoId = pedido.ProductoId,
+                    ProductoNombre = producto?.Nombre,
+                    ProductoCategoria = producto?.Categoria,
+                    ComercioId = pedido.ComercioId,
+                    ComercioNombre = comercio?.Nombre,
+                    ComercioLat = comercio?.Latitud,
+                    ComercioLng = comercio?.Longitud,
+                    UsuarioFinalId = pedido.UsuarioFinalId
+                };
+
+                // Enviar al grupo del usuario (user-{id}) y al grupo del pedido (pedido-{id})
+                await _hubContext.Clients.Group($"user-{pedido.UsuarioFinalId}")
+                    .SendAsync("PedidoEnCamino", payloadToUser);
+
+                await _hubContext.Clients.Group($"pedido-{pedido.PedidoId}")
+                    .SendAsync("PedidoEnCamino", payloadToUser);
             }
 
             return Ok();
