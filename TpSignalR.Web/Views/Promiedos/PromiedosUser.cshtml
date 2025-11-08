@@ -247,6 +247,70 @@
             font-size: 1.1rem;
         }
 
+    /* Toast / Notificación */
+    .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        z-index: 9999;
+        pointer-events: none;
+    }
+
+    .toast {
+        min-width: 260px;
+        max-width: 360px;
+        background: rgba(17, 24, 39, 0.95);
+        color: #fff;
+        border-radius: 8px;
+        padding: 12px 14px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        pointer-events: auto;
+        opacity: 0;
+        transform: translateY(-10px) scale(0.98);
+        transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+
+    .toast.show {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+
+    .toast .icon {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 18px;
+    }
+
+    .toast .content {
+        flex: 1;
+    }
+
+    .toast .title {
+        font-weight: 700;
+        font-size: 0.95rem;
+        margin-bottom: 4px;
+    }
+
+    .toast .message {
+        font-size: 0.85rem;
+        opacity: 0.9;
+    }
+
+    .toast.success .icon { background: rgba(34,197,94,0.15); color: #22c55e; }
+    .toast.info .icon { background: rgba(59,130,246,0.12); color: #60a5fa; }
+    .toast.warning .icon { background: rgba(245,158,11,0.12); color: #f59e0b; }
+
     @@media (max-width: 768px) {
         .match-main {
             grid-template-columns: 1fr;
@@ -279,6 +343,9 @@
 </style>
 
 <div class="user-container">
+    <!-- Toast container para notificaciones en vivo -->
+    <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
     <div class="user-header">
         <h1>⚽ Resultados en Vivo</h1>
         <p><span class="live-indicator"></span>Actualización en tiempo real</p>
@@ -413,6 +480,10 @@
     connection.on("TarjetasActualizadas", function (partidoId, equipo, amarillas, rojas) {
         console.log('Tarjetas actualizadas:', partidoId, equipo, amarillas, rojas);
         updateCardsUI(partidoId, equipo, amarillas, rojas);
+        // Mostrar notificación
+        const teamName = equipo === 'local' ? 'Local' : 'Visitante';
+        const message = `${teamName}: ${amarillas} amarilla(s), ${rojas} roja(s)`;
+        showNotification('warning', 'Tarjetas actualizadas', message);
     });
 
     // Handle goal registration
@@ -420,6 +491,11 @@
         console.log('Gol registrado:', partidoId, equipo, jugador, minuto);
         updateScoreUI(partidoId, golesLocal, golesVisitante);
         addGoalToTeam(partidoId, equipo, jugador, minuto);
+        // Mostrar notificación
+        const team = equipo === 'local' ? 'Local' : 'Visitante';
+        const title = `Gol para ${team}`;
+        const message = `${jugador} • Min ${minuto} — ${golesLocal}-${golesVisitante}`;
+        showNotification('success', title, message);
     });
 
     // Start connection
@@ -583,6 +659,59 @@
         teamGoals.appendChild(goalsList);
         
         return teamGoals;
+    }
+
+    // Mostrar notificación tipo toast
+    function showNotification(type, title, message, timeout = 5000) {
+        const container = document.getElementById('toastContainer');
+        if (!container) return;
+
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+
+        const icon = document.createElement('div');
+        icon.className = 'icon';
+        icon.textContent = type === 'success' ? '⚽' : (type === 'warning' ? '🟨' : 'ℹ️');
+
+        const content = document.createElement('div');
+        content.className = 'content';
+
+        const t = document.createElement('div');
+        t.className = 'title';
+        t.textContent = title;
+
+        const m = document.createElement('div');
+        m.className = 'message';
+        m.textContent = message;
+
+        content.appendChild(t);
+        content.appendChild(m);
+
+        toast.appendChild(icon);
+        toast.appendChild(content);
+
+        container.prepend(toast);
+
+        // Force reflow then show
+        requestAnimationFrame(() => {
+            toast.classList.add('show');
+        });
+
+        // Auto remove
+        const remove = () => {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        };
+
+        const timer = setTimeout(remove, timeout);
+
+        // Allow manual dismiss on click
+        toast.addEventListener('click', () => {
+            clearTimeout(timer);
+            remove();
+        });
     }
 
     // Handle reconnection
