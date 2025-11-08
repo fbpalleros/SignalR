@@ -11,6 +11,8 @@ namespace TpSignalR.Logica
     {
         List<Usuario> obtenerTodos();
         void registrarUsuario(Usuario usuario);
+
+        Usuario ObtenerPorId(int id);
     }
 
     public class UsuarioLogica : IUsuarioLogica
@@ -38,6 +40,11 @@ namespace TpSignalR.Logica
             return _context.Usuarios
                 .OrderBy(u => u.Id)
                 .ToList();
+        }
+
+        public Usuario ObtenerPorId(int id)
+        {
+            return _context.Usuarios.FirstOrDefault(u => u.Id == id);
         }
     }
 }

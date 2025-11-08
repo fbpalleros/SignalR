@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace TpSignalR.Entidades
 {
@@ -17,7 +18,7 @@ namespace TpSignalR.Entidades
 
         [ForeignKey("Repartidor")]
         [Column("repartidor_id")]
-        public int RepartidorId { get; set; }
+        public int? RepartidorId { get; set; }
 
         [ForeignKey("UsuarioFinal")]
         [Column("usuario_id")]

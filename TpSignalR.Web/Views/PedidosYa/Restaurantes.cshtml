@@ -69,7 +69,9 @@
                      style="width:100%;height:200px;object-fit:cover;border-radius:8px;" />
                 <h3>@r.Nombre</h3>
                 <p>@r.Direccion</p>
-                <a href="@Url.Action("ServicioSeleccionado", "PedidosYa", new { comercioId = r.Id })" class="btn-ver">
+
+                @* A fines de la Poc Todos los Comerciones tienen el ID 1 para poder comunicar las señales *@
+                <a href="@Url.Action("ServicioSeleccionado", "PedidosYa", new { comercioId = 1 })" class="btn-ver">
                     Ver menú
                 </a>
             </div>

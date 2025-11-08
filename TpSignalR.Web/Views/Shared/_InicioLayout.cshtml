@@ -83,6 +83,16 @@
           background-color: #ff4444;
           border-color: #ff4444;
         }
+
+        .btn-test {
+            background-color: #2b6cb0;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .btn-test:hover { opacity: 0.9; }
     </style>
 </head>
 <body>
@@ -123,6 +133,60 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.12/signalr.min.js"></script>
+
+    @* SignalR notification registration *@
+    <script>
+        (function(){
+            try {
+                var uid = @((Context.Session.GetInt32("UsuarioId") ?? -1));
+            } catch(e) {
+                var uid = -1;
+            }
+
+            console.log('SignalR init, uid=', uid);
+
+            if (uid && uid > 0) {
+                const connection = new signalR.HubConnectionBuilder()
+                    .withUrl('/notificationHub')
+                    .withAutomaticReconnect()
+                    .configureLogging(signalR.LogLevel.Information)
+                    .build();
+
+                connection.on('Notify', function(message) {
+                    console.log('Notify received:', message);
+                    try { alert(message); } catch(e){ console.warn('alert failed', e); }
+                });
+
+                connection.onclose(function(err){
+                    console.warn('SignalR connection closed', err);
+                });
+
+                connection.onreconnecting(function(err){
+                    console.warn('SignalR reconnecting', err);
+                });
+
+                connection.onreconnected(function(connectionId){
+                    console.log('SignalR reconnected, connectionId=', connectionId);
+                    // Re-register after reconnect
+                    connection.invoke('Register', uid).catch(function(err){ console.error('Register after reconnect failed', err.toString()); });
+                });
+
+                connection.start()
+                    .then(function(){
+                        console.log('SignalR connected, invoking Register with uid=', uid);
+                        return connection.invoke('Register', uid);
+                    })
+                    .then(function(){
+                        console.log('Register invoked successfully');
+                    })
+                    .catch(function(err){ console.error('SignalR start or register failed', err.toString()); });
+
+            } else {
+                console.log('No usuarioId in session, skipping SignalR registration');
+            }
+        })();
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

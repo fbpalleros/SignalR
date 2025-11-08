@@ -13,7 +13,7 @@ namespace TpSignalR.Logica
         List<Producto> ObtenerProductosPorComercio(int idComercio);
 
         // Realizar un pedido
-        Pedido CrearPedido(int idCliente, int idComercio, int idProducto);
+        Pedido CrearPedido(int idCliente, int idComerciante, int idProducto);
 
         // Consultar el estado o seguimiento de un pedido
         Pedido ObtenerSeguimientoPedido(int idPedido);
@@ -46,14 +46,13 @@ namespace TpSignalR.Logica
             throw new NotImplementedException();
         }
 
-        public Pedido CrearPedido(int idCliente, int idComercio, int idProducto)
+        public Pedido CrearPedido(int idCliente, int idComerciante, int idProducto)
         {
-
-            // Intentar asignar un repartidor disponible para evitar conflicto FK (evitar usar 0)
-            var repartidor = _context.Repartidor.FirstOrDefault(r => r.Estado == "Disponible"); //No debería de estar acá
+            // Intentar asignar un repartidor disponible para evitar conflicto FK
+            var repartidor = _context.Repartidor.FirstOrDefault(r => r.Estado == "Disponible");
             if (repartidor == null)
             {
-                // Si no hay repartidor disponible, crear uno placeholder o cambiar la lógica según necesites
+                // Si no hay repartidor disponible, crear uno placeholder
                 repartidor = new Repartidor
                 {
                     Nombre = "AutoAsignado",
@@ -74,7 +73,7 @@ namespace TpSignalR.Logica
             Pedido pedido = new Pedido
             {
                 UsuarioFinalId = idCliente,
-                ComercioId = idComercio,
+                ComercioId = idComerciante,
                 RepartidorId = repartidor.RepartidorId,
                 ProductoId = idProducto,
                 Total = total,

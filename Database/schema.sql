@@ -4,16 +4,6 @@
 -- Complete database setup with schema and sample data
 -- Run this script to create the database from scratch
 
-USE master;
-
-GO
--- Agregar Latitud y Longitud a Usuarios si no existen
-IF COL_LENGTH('Usuarios', 'Latitud') IS NULL
-BEGIN
-    ALTER TABLE Usuarios ADD Latitud FLOAT NULL;
-    PRINT '✓ Columna Latitud agregada a Usuarios';
-END
-
 IF COL_LENGTH('Usuarios', 'Longitud') IS NULL
 BEGIN
     ALTER TABLE Usuarios ADD Longitud FLOAT NULL;
@@ -47,8 +37,8 @@ BEGIN
     CREATE TABLE Usuarios (
         Id INT PRIMARY KEY IDENTITY(1,1),
         Nombre NVARCHAR(50) NOT NULL,
-        Latitud FLOAT NULL,
-        Longitud FLOAT NULL
+        Latitud FLOAT,
+        Longitud FLOAT 
     );
     PRINT '✓ Table Usuarios created';
 END
@@ -344,6 +334,24 @@ BEGIN
     PRINT '✓ Sample partidos inserted';
 END
 GO
+
+
+IF COL_LENGTH('Usuarios', 'Rol') IS NULL
+BEGIN
+    ALTER TABLE Usuarios
+    ADD Rol NVARCHAR(20) NOT NULL DEFAULT 'cliente';
+    PRINT '✓ Columna Rol agregada a Usuarios';
+END
+GO
+
+-- Asignar roles manualmente
+UPDATE Usuarios SET Rol = 'comercio' WHERE Nombre IN ('Juan', 'Ana');
+UPDATE Usuarios SET Rol = 'repartidor' WHERE Nombre IN ('Pedro', 'Carlos');
+UPDATE Usuarios SET Rol = 'cliente' WHERE Nombre IN ('María', 'Lucía');
+
+PRINT '✓ Roles actualizados correctamente';
+GO
+
 
 PRINT '';
 PRINT '========================================';

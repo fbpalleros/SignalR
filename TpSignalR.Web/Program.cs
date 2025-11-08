@@ -68,5 +68,6 @@ app.MapControllerRoute(
 
 app.MapHub<PedidoHub>("/pedidoHub");
 app.MapHub<ChatHub>("/chatHub");
+app.MapHub<NotificationHub>("/notificationHub");
 
 app.Run();
