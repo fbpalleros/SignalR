@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.SignalR;
 using TpSignalR.Repositorio;
 using TpSignalR.Web.Hubs;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace TpSignalR.Web.Controllers
 {
@@ -23,7 +24,7 @@ namespace TpSignalR.Web.Controllers
         }
 
         [HttpPost]
-        public IActionResult AceptarPedido([FromBody] AceptarPedidoModel model)
+        public async Task<IActionResult> AceptarPedido([FromBody] AceptarPedidoModel model)
         {
             Console.WriteLine("AceptarPedido endpoint invoked");
             Console.WriteLine($"Request Content-Type: {Request.ContentType}");
@@ -52,7 +53,14 @@ namespace TpSignalR.Web.Controllers
             _context.SaveChanges();
 
             // Notify all clients so other repartidores remove the pedido from their lists
-            _hubContext.Clients.All.SendAsync("PedidoAceptado", pedido.PedidoId);
+            await _hubContext.Clients.All.SendAsync("PedidoAceptado", pedido.PedidoId);
+
+            // Notificar al usuario final si corresponde (usuarios 2 y 6)
+            var userId = pedido.UsuarioFinalId;
+            if (userId == 2 || userId == 6)
+            {
+                await _hubContext.Clients.Group($"user-{userId}").SendAsync("Notify", "Su pedido esta en camino");
+            }
 
             return Ok();
         }

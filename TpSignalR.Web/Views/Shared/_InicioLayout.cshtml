@@ -93,6 +93,96 @@
             cursor: pointer;
         }
         .btn-test:hover { opacity: 0.9; }
+
+        /* ===== TOAST / NOTIFICACIONES GLOBAL ===== */
+        .toast-container {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 9999;
+            pointer-events: none;
+            max-width: calc(100% - 48px);
+        }
+
+        .toast {
+            min-width: 320px;
+            max-width: 480px;
+            background: linear-gradient(180deg, rgba(6,12,10,0.95), rgba(8,18,14,0.95));
+            color: #e6fff6;
+            border-radius: 12px;
+            padding: 14px 16px;
+            box-shadow: 0 12px 30px rgba(2,12,8,0.6), 0 4px 10px rgba(0,0,0,0.3);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            pointer-events: auto;
+            opacity: 0;
+            transform: translateY(-8px) scale(0.99);
+            transition: opacity 0.28s cubic-bezier(.2,.9,.2,1), transform 0.28s cubic-bezier(.2,.9,.2,1);
+            border-left: 6px solid transparent;
+            overflow: hidden;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .toast .icon {
+            width: 52px;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 20px;
+            background: rgba(255,255,255,0.03);
+            color: #00bfa6;
+            flex: 0 0 52px;
+            box-shadow: inset 0 -2px 6px rgba(0,0,0,0.2);
+        }
+
+        .toast .content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .toast .title {
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 4px;
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .toast .message {
+            font-size: 0.95rem;
+            opacity: 0.92;
+            color: #cfeee4;
+            line-height: 1.2;
+            word-break: break-word;
+        }
+
+        .toast.success { border-left-color: #00c853; }
+        .toast.info { border-left-color: #00bfa6; }
+        .toast.warning { border-left-color: #ffb020; }
+
+        @@media (max-width: 768px) {
+            .toast-container {
+                left: 50%;
+                right: auto;
+                top: 16px;
+                transform: translateX(-50%);
+            }
+            .toast { min-width: calc(100% - 40px); max-width: calc(100% - 40px); border-radius: 10px; }
+        }
+
     </style>
 </head>
 <body>
@@ -125,6 +215,9 @@
         </main>
     </div>
 
+    <!-- Toast container (global) -->
+    <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
     <footer class="border-top footer text-muted">
         <div class="container text-center">
             Footer
@@ -146,6 +239,68 @@
 
             console.log('SignalR init, uid=', uid);
 
+            function ensureContainer() {
+                if (!document.getElementById('toastContainer')) {
+                    const c = document.createElement('div');
+                    c.id = 'toastContainer';
+                    c.className = 'toast-container';
+                    c.setAttribute('aria-live','polite');
+                    c.setAttribute('aria-atomic','true');
+                    document.body.appendChild(c);
+                }
+            }
+
+            // Expose a global helper for pages
+            window.showNotification = function(type, title, message, timeout, customIcon) {
+                try {
+                    timeout = timeout || 5000;
+                    ensureContainer();
+                    const container = document.getElementById('toastContainer');
+                    if (!container) return;
+
+                    const toast = document.createElement('div');
+                    toast.className = `toast ${type}`;
+
+                    const icon = document.createElement('div');
+                    icon.className = 'icon';
+                    icon.textContent = customIcon || (type === 'success' ? '✅' : (type === 'warning' ? '⚠️' : 'ℹ️'));
+
+                    const content = document.createElement('div');
+                    content.className = 'content';
+
+                    const t = document.createElement('div');
+                    t.className = 'title';
+                    t.textContent = title || '';
+
+                    const m = document.createElement('div');
+                    m.className = 'message';
+                    m.textContent = message || '';
+
+                    content.appendChild(t);
+                    content.appendChild(m);
+
+                    toast.appendChild(icon);
+                    toast.appendChild(content);
+
+                    container.prepend(toast);
+
+                    // Force reflow then show
+                    requestAnimationFrame(() => {
+                        toast.classList.add('show');
+                    });
+
+                    const remove = () => {
+                        toast.classList.remove('show');
+                        setTimeout(() => toast.remove(), 300);
+                    };
+
+                    const timer = setTimeout(remove, timeout);
+                    toast.addEventListener('click', () => { clearTimeout(timer); remove(); });
+                } catch (ex) {
+                    console.warn('showNotification failed', ex);
+                }
+            };
+
             if (uid && uid > 0) {
                 const connection = new signalR.HubConnectionBuilder()
                     .withUrl('/notificationHub')
@@ -155,7 +310,19 @@
 
                 connection.on('Notify', function(message) {
                     console.log('Notify received:', message);
-                    try { alert(message); } catch(e){ console.warn('alert failed', e); }
+                    try {
+                        var m = (message || '').toString();
+                        var type = 'info';
+                        var low = m.toLowerCase();
+                        if (low.indexOf('entreg') !== -1 || low.indexOf('finaliz') !== -1) type = 'success';
+                        else if (low.indexOf('pend') !== -1) type = 'warning';
+                        else if (low.indexOf('camino') !== -1) type = 'info';
+
+                        window.showNotification(type, 'Pedido', m);
+                    } catch(e) {
+                        console.error('Error handling Notify', e);
+                        try { alert(message); } catch(er) { console.warn('alert failed', er); }
+                    }
                 });
 
                 connection.onclose(function(err){
