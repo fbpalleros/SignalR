@@ -4,16 +4,20 @@ using TpSignalR.Repositorio;
 using TpSignalR.Web.Models;
 using System.Linq;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.SignalR;
+using TpSignalR.Web.Hubs;
 
 namespace TpSignalR.Web.Controllers
 {
     public class ComercioController : Controller
     {
         private readonly ServicioRepartoContext _context;
+        private readonly IHubContext<NotificationHub> _hubContext;
 
-        public ComercioController(ServicioRepartoContext context)
+        public ComercioController(ServicioRepartoContext context, IHubContext<NotificationHub> hubContext)
         {
             _context = context;
+            _hubContext = hubContext;
         }
 
         public IActionResult Inicio()
@@ -60,6 +64,26 @@ namespace TpSignalR.Web.Controllers
 
             pedido.Estado = model.NuevoEstado;
             _context.SaveChanges();
+
+            // Si el nuevo estado es "buscando repartidor" notificamos al repartidor (usuario id 3)
+            if (model.NuevoEstado == "buscando repartidor")
+            {
+                // Construir payload con información útil
+                var producto = _context.Producto.FirstOrDefault(prod => prod.Id == pedido.ProductoId);
+                var payload = new ComercioPedidoViewModel
+                {
+                    PedidoId = pedido.PedidoId,
+                    Total = pedido.Total,
+                    Estado = pedido.Estado,
+                    UsuarioFinalId = pedido.UsuarioFinalId,
+                    ProductoId = pedido.ProductoId,
+                    ProductoNombre = producto?.Nombre,
+                    ProductoCategoria = producto?.Categoria
+                };
+
+                // Enviar solo al usuario con id 3 (grupo "user-3")
+                _hubContext.Clients.Group($"user-3").SendAsync("NuevoPedido", payload);
+            }
 
             return Ok();
         }

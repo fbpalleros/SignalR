@@ -1,0 +1,130 @@
+﻿@using TpSignalR.Web.Models
+@{
+    ViewData["Title"] = "Repartidor Lobby";
+    Layout = "~/Views/Shared/_InicioLayout.cshtml";
+}
+
+<h2>Pedidos disponibles (buscando repartidor)</h2>
+
+@Html.AntiForgeryToken()
+
+<table class="table table-striped" id="pedidos-disponibles">
+    <thead>
+        <tr>
+            <th>ID Pedido</th>
+            <th>Total</th>
+            <th>Estado</th>
+            <th>Usuario</th>
+            <th>Producto</th>
+            <th>Categoria</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- Filas serán agregadas vía SignalR -->
+    </tbody>
+</table>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl('/notificationHub')
+            .withAutomaticReconnect()
+            .build();
+
+        function renderPedidoRow(pedido) {
+            const tr = document.createElement('tr');
+            tr.setAttribute('data-pedido-id', pedido.pedidoId);
+            tr.innerHTML = `
+                <td>${pedido.pedidoId}</td>
+                <td>${pedido.total}</td>
+                <td class="estado">${pedido.estado}</td>
+                <td>${pedido.usuarioFinalId}</td>
+                <td>${pedido.productoNombre}</td>
+                <td>${pedido.productoCategoria}</td>
+                <td>
+                    <button class="btn btn-success aceptar">Aceptar</button>
+                    <button class="btn btn-danger rechazar">Rechazar</button>
+                </td>
+            `;
+
+            // Aceptar
+            tr.querySelector('.aceptar').addEventListener('click', function () {
+                const pedidoId = parseInt(tr.getAttribute('data-pedido-id'));
+                const repartidorId = 3; // en POC usamos id 3; idealmente detectar desde sesión
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+                fetch('/Repartidor/AceptarPedido', {
+                    method: 'POST',
+                    credentials: 'same-origin', // include antiforgery cookie
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token || ''
+                    },
+                    body: JSON.stringify({ PedidoId: pedidoId, RepartidorId: repartidorId })
+                }).then(res => {
+                    if (res.ok) {
+                        // Quitar fila localmente
+                        tr.remove();
+                    } else if (res.status === 409) {
+                        alert('Pedido ya no está disponible');
+                        tr.remove();
+                    } else {
+                        res.text().then(t => console.error('Aceptar error:', res.status, t));
+                        alert('Error aceptando pedido');
+                    }
+                }).catch((err) => { console.error(err); alert('Error de red') });
+            });
+
+            // Rechazar
+            tr.querySelector('.rechazar').addEventListener('click', function () {
+                const pedidoId = parseInt(tr.getAttribute('data-pedido-id'));
+                const repartidorId = 3;
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+                fetch('/Repartidor/RechazarPedido', {
+                    method: 'POST',
+                    credentials: 'same-origin', // include antiforgery cookie
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token || ''
+                    },
+                    body: JSON.stringify({ PedidoId: pedidoId, RepartidorId: repartidorId })
+                }).then(res => {
+                    if (res.ok) {
+                        // Keep the row visible so other repartidores can accept
+                        alert('Pedido rechazado, permanece disponible');
+                    } else {
+                        res.text().then(t => console.error('Rechazar error:', res.status, t));
+                        alert('Error rechazando pedido');
+                    }
+                }).catch((err) => { console.error(err); alert('Error de red') });
+            });
+
+            return tr;
+        }
+
+        connection.on('NuevoPedido', function (pedido) {
+            console.log('NuevoPedido recibido', pedido);
+            // Only add if estado == 'buscando repartidor'
+            if (pedido.estado !== 'buscando repartidor') return;
+            const tbody = document.querySelector('#pedidos-disponibles tbody');
+            const row = renderPedidoRow(pedido);
+            tbody.prepend(row);
+        });
+
+        // Remove row when another repartidor accepts
+        connection.on('PedidoAceptado', function (pedidoId) {
+            const row = document.querySelector(`tr[data-pedido-id='${pedidoId}']`);
+            if (row) row.remove();
+        });
+
+        connection.start().then(function () {
+            // Registrarse en el grupo user-3 para recibir notificaciones
+            return connection.invoke('Register', 3);
+        }).catch(function (err) {
+            console.error(err.toString());
+        });
+    </script>
+}
