@@ -1,73 +1,746 @@
+@model List<TpSignalR.Entidades.Partido>
 @{
-    ViewData["Title"] = "Promiedos - Admin";
+    ViewData["Title"] = "Promiedos - Admin Panel";
 }
 
 <style>
+    body {
+        margin: 0;
+        padding: 0;
+        background-color: #0f0f0f;
+        color: #fff;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
     .admin-container {
         min-height: 100vh;
-        background-color: #013220;
-        color: #fff;
-        font-family: 'Segoe UI', sans-serif;
-        padding: 40px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding-top: 80px;
+        padding: 20px;
     }
 
-    .back-button {
-        align-self: flex-start;
-        background-color: #024a2e;
-        color: #fff;
-        padding: 10px 20px;
-        border-radius: 8px;
-        text-decoration: none;
-        font-weight: 600;
-        transition: background-color 0.3s;
-        margin-bottom: 40px;
+    .admin-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 30px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+        box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
     }
 
-        .back-button:hover {
-            background-color: #013d27;
-            color: #9aff9a;
+        .admin-header h1 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 600;
         }
 
-    .admin-content {
+        .admin-header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+
+    .matches-grid {
+        display: grid;
+        gap: 20px;
+    }
+
+    .match-card {
+        background: #1a1a1a;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        border: 1px solid #2a2a2a;
+    }
+
+    .match-header {
         display: flex;
-        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #2a2a2a;
+    }
+
+    .match-teams {
+        display: flex;
+        gap: 30px;
+        align-items: center;
+        font-size: 1.3rem;
+        font-weight: 600;
+    }
+
+    .team-name {
+        min-width: 150px;
+        text-align: center;
+    }
+
+    .score-display {
+        background: #667eea;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #fff;
+        min-width: 80px;
+        text-align: center;
+    }
+
+    .match-status {
+        display: inline-block;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .status-programado {
+        background: #4a5568;
+    }
+
+    .status-en_curso {
+        background: #48bb78;
+        animation: pulse 2s infinite;
+    }
+
+    .status-finalizado {
+        background: #f56565;
+    }
+
+    @@keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0.7;
+        }
+    }
+
+    .match-controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-top: 25px;
+    }
+
+    .team-controls {
+        background: #252525;
+        padding: 20px;
+        border-radius: 10px;
+    }
+
+        .team-controls h3 {
+            margin: 0 0 15px 0;
+            font-size: 1.1rem;
+            color: #667eea;
+            text-align: center;
+        }
+
+    .card-controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+
+    .card-control-group {
+        background: #1a1a1a;
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+        .card-control-group label {
+        display: block;
+        font-size: 0.85rem;
+        margin-bottom: 8px;
+        color: #a0aec0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        }
+
+    .goals-list {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #2a2a2a;
+    }
+
+        .goals-list-title {
+            font-size: 0.75rem;
+            color: #a0aec0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .goals-list ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .goals-list li {
+            padding: 0;
+            margin: 0;
+            display: inline-block;
+        }
+
+            .goals-list li::before {
+                content: none;
+            }
+
+        .goal-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            background: rgba(102, 126, 234, 0.15);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 12px;
+            font-size: 0.8rem;
+            color: #e2e8f0;
+            white-space: nowrap;
+        }
+
+        .goal-minute {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .goal-player {
+            color: #e2e8f0;
+        }
+
+        .no-goals {
+            color: #718096;
+            font-size: 0.85rem;
+            font-style: italic;
+            padding: 6px 0;
+        }
+
+    .card-counter {
+        display: flex;
         align-items: center;
         justify-content: center;
-        flex: 1;
+        gap: 10px;
+        margin-top: 5px;
     }
 
-    .admin-icon {
-        font-size: 5rem;
-        margin-bottom: 30px;
+    .card-value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        min-width: 40px;
     }
 
-    .admin-title {
-        font-size: 2.5rem;
-        color: #9aff9a;
-        margin-bottom: 20px;
+    .yellow-card {
+        color: #ecc94b;
     }
 
-    .admin-description {
+    .red-card {
+        color: #f56565;
+    }
+
+    .btn-card {
+        background: none;
+        border: 2px solid;
+        border-radius: 6px;
+        width: 40px;
+        height: 40px;
         font-size: 1.2rem;
-        color: #aaa;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+        .btn-card:hover {
+            transform: scale(1.1);
+        }
+
+        .btn-card:active {
+            transform: scale(0.95);
+        }
+
+    .btn-yellow {
+        border-color: #ecc94b;
+        color: #ecc94b;
+    }
+
+        .btn-yellow:hover {
+            background: #ecc94b;
+            color: #000;
+        }
+
+    .btn-red {
+        border-color: #f56565;
+        color: #f56565;
+    }
+
+        .btn-red:hover {
+            background: #f56565;
+            color: #fff;
+        }
+
+    .goal-form {
+        background: #252525;
+        border-radius: 10px;
+        border: 2px solid #667eea;
+        overflow: hidden;
+    }
+
+        .goal-form-header {
+            padding: 15px 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+
+            .goal-form-header:hover {
+                background: rgba(102, 126, 234, 0.1);
+            }
+
+            .goal-form-header h3 {
+                margin: 0;
+                font-size: 1.1rem;
+                color: #667eea;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .goal-form-header .toggle-icon {
+                font-size: 1.2rem;
+                transition: transform 0.3s;
+            }
+
+            .goal-form-header .toggle-icon.expanded {
+                transform: rotate(180deg);
+            }
+
+        .goal-form-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+            .goal-form-content.expanded {
+                max-height: 500px;
+                padding: 20px;
+            }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+            color: #a0aec0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #2a2a2a;
+            border-radius: 6px;
+            background: #1a1a1a;
+            color: #fff;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+            .form-group input:focus,
+            .form-group select:focus {
+                outline: none;
+                border-color: #667eea;
+            }
+
+    .btn-submit {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 8px;
+        color: #fff;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+    .no-matches {
         text-align: center;
-        max-width: 600px;
+        padding: 60px 20px;
+        color: #a0aec0;
+    }
+
+        .no-matches h2 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+    @@media (max-width: 768px) {
+        .match-controls {
+            grid-template-columns: 1fr;
+        }
+
+        .match-teams {
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .team-name {
+            min-width: auto;
+        }
+
+        .goals-column-local,
+        .goals-column-visitante {
+            justify-content: center;
+        }
     }
 </style>
 
 <div class="admin-container">
-    <a href="@Url.Action("PromiedosLobby", "Promiedos")" class="back-button">← Volver</a>
-
-    <div class="admin-content">
-        <div class="admin-icon">🔐</div>
-        <h1 class="admin-title">Panel de Administración</h1>
-        <p class="admin-description">
-            Esta sección estará disponible próximamente. Aquí podrás gestionar partidos, 
-            actualizar resultados en tiempo real y administrar toda la información deportiva.
-        </p>
+    <div class="admin-header">
+        <h1>🔐 Panel de Administración</h1>
+        <p>Gestiona los partidos en tiempo real</p>
     </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="matches-grid">
+            @foreach (var partido in Model)
+            {
+                <div class="match-card" data-partido-id="@partido.Id">
+                    <div class="match-header">
+                        <div class="match-teams">
+                            <span class="team-name">@partido.EquipoLocal</span>
+                            <div class="score-display">
+                                <span class="score-local">@partido.GolesLocal</span>
+                                -
+                                <span class="score-visitante">@partido.GolesVisitante</span>
+                            </div>
+                            <span class="team-name">@partido.EquipoVisitante</span>
+                        </div>
+                        <span class="match-status status-@partido.Estado">@partido.Estado.Replace("_", " ")</span>
+                    </div>
+
+                    <div class="match-controls">
+                        <!-- Local Team Controls -->
+                        <div class="team-controls">
+                            <h3>⚡ @partido.EquipoLocal</h3>
+                            <div class="card-controls">
+                                <div class="card-control-group">
+                                    <label>Amarillas</label>
+                                    <div class="card-counter">
+                                        <button class="btn-card btn-yellow" onclick="updateCard(@partido.Id, 'local', 'amarilla', -1)">-</button>
+                                        <span class="card-value yellow-card amarillas-local">@partido.AmarillasEquipoLocal</span>
+                                        <button class="btn-card btn-yellow" onclick="updateCard(@partido.Id, 'local', 'amarilla', 1)">+</button>
+                                    </div>
+                                </div>
+                                <div class="card-control-group">
+                                    <label>Rojas</label>
+                                    <div class="card-counter">
+                                        <button class="btn-card btn-red" onclick="updateCard(@partido.Id, 'local', 'roja', -1)">-</button>
+                                        <span class="card-value red-card rojas-local">@partido.RojasEquipoLocal</span>
+                                        <button class="btn-card btn-red" onclick="updateCard(@partido.Id, 'local', 'roja', 1)">+</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Goals List for Local Team -->
+                            <div class="goals-list">
+                                <div class="goals-list-title">Goles</div>
+                                <div class="goles-local-list">
+                                    @if (partido.Goles != null && partido.Goles.Any(g => g.Equipo.ToLower() == "local"))
+                                    {
+                                        <ul>
+                                            @foreach (var gol in partido.Goles.Where(g => g.Equipo.ToLower() == "local").OrderBy(g => g.Minuto))
+                                            {
+                                                <li>
+                                                    <div class="goal-chip">
+                                                        <span class="goal-minute">'@gol.Minuto</span>
+                                                        <span class="goal-player">@gol.Jugador</span>
+                                                    </div>
+                                                </li>
+                                            }
+                                        </ul>
+                                    }
+                                    else
+                                    {
+                                        <div class="no-goals">Sin goles</div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Visiting Team Controls -->
+                        <div class="team-controls">
+                            <h3>⚡ @partido.EquipoVisitante</h3>
+                            <div class="card-controls">
+                                <div class="card-control-group">
+                                    <label>Amarillas</label>
+                                    <div class="card-counter">
+                                        <button class="btn-card btn-yellow" onclick="updateCard(@partido.Id, 'visitante', 'amarilla', -1)">-</button>
+                                        <span class="card-value yellow-card amarillas-visitante">@partido.AmarillasEquipoVisitante</span>
+                                        <button class="btn-card btn-yellow" onclick="updateCard(@partido.Id, 'visitante', 'amarilla', 1)">+</button>
+                                    </div>
+                                </div>
+                                <div class="card-control-group">
+                                    <label>Rojas</label>
+                                    <div class="card-counter">
+                                        <button class="btn-card btn-red" onclick="updateCard(@partido.Id, 'visitante', 'roja', -1)">-</button>
+                                        <span class="card-value red-card rojas-visitante">@partido.RojasEquipoVisitante</span>
+                                        <button class="btn-card btn-red" onclick="updateCard(@partido.Id, 'visitante', 'roja', 1)">+</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Goals List for Visiting Team -->
+                            <div class="goals-list">
+                                <div class="goals-list-title">Goles</div>
+                                <div class="goles-visitante-list">
+                                    @if (partido.Goles != null && partido.Goles.Any(g => g.Equipo.ToLower() == "visitante"))
+                                    {
+                                        <ul>
+                                            @foreach (var gol in partido.Goles.Where(g => g.Equipo.ToLower() == "visitante").OrderBy(g => g.Minuto))
+                                            {
+                                                <li>
+                                                    <div class="goal-chip">
+                                                        <span class="goal-minute">'@gol.Minuto</span>
+                                                        <span class="goal-player">@gol.Jugador</span>
+                                                    </div>
+                                                </li>
+                                            }
+                                        </ul>
+                                    }
+                                    else
+                                    {
+                                        <div class="no-goals">Sin goles</div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Goal Registration Form (Collapsible) -->
+                    <div class="goal-form">
+                        <div class="goal-form-header" onclick="toggleGoalForm(@partido.Id)">
+                            <h3>⚽ Registrar Gol</h3>
+                            <span class="toggle-icon" id="toggle-icon-@partido.Id">▼</span>
+                        </div>
+                        <div class="goal-form-content" id="goal-form-content-@partido.Id">
+                            <form onsubmit="registerGoal(event, @partido.Id)">
+                                <div class="form-group">
+                                    <label for="equipo-@partido.Id">Equipo</label>
+                                    <select id="equipo-@partido.Id" required>
+                                        <option value="">Seleccionar equipo</option>
+                                        <option value="local">@partido.EquipoLocal</option>
+                                        <option value="visitante">@partido.EquipoVisitante</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="jugador-@partido.Id">Jugador</label>
+                                    <input type="text" id="jugador-@partido.Id" placeholder="Nombre del jugador" required />
+                                </div>
+                                <div class="form-group">
+                                    <label for="minuto-@partido.Id">Minuto</label>
+                                    <input type="number" id="minuto-@partido.Id" min="1" max="120" placeholder="45" required />
+                                </div>
+                                <button type="submit" class="btn-submit">⚽ Registrar Gol</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="no-matches">
+            <h2>No hay partidos disponibles</h2>
+            <p>Los partidos aparecerán aquí cuando se creen</p>
+        </div>
+    }
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
+<script>
+    // SignalR connection setup would go here
+    // For now, using simple AJAX calls
+
+    // Toggle goal form
+    function toggleGoalForm(partidoId) {
+        const content = document.getElementById(`goal-form-content-${partidoId}`);
+        const icon = document.getElementById(`toggle-icon-${partidoId}`);
+        
+        content.classList.toggle('expanded');
+        icon.classList.toggle('expanded');
+    }
+
+    async function updateCard(partidoId, equipo, tipoTarjeta, cambio) {
+        try {
+            const response = await fetch('/Promiedos/ActualizarTarjeta', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    partidoId: partidoId,
+                    equipo: equipo,
+                    tipoTarjeta: tipoTarjeta,
+                    cambio: cambio
+                })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                updateCardUI(partidoId, equipo, tipoTarjeta, data.nuevoValor);
+            } else {
+                alert('Error al actualizar tarjeta');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error de conexión');
+        }
+    }
+
+    function updateCardUI(partidoId, equipo, tipoTarjeta, nuevoValor) {
+        const card = document.querySelector(`[data-partido-id="${partidoId}"]`);
+        const selector = `.${tipoTarjeta}s-${equipo}`;
+        const element = card.querySelector(selector);
+        if (element) {
+            element.textContent = nuevoValor;
+        }
+    }
+
+    async function registerGoal(event, partidoId) {
+        event.preventDefault();
+
+        const equipo = document.getElementById(`equipo-${partidoId}`).value;
+        const jugador = document.getElementById(`jugador-${partidoId}`).value;
+        const minuto = document.getElementById(`minuto-${partidoId}`).value;
+
+        try {
+            const response = await fetch('/Promiedos/RegistrarGol', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    partidoId: partidoId,
+                    equipo: equipo,
+                    jugador: jugador,
+                    minuto: parseInt(minuto)
+                })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                updateScoreUI(partidoId, data.golesLocal, data.golesVisitante);
+                
+                // Update goals list
+                await updateGoalsList(partidoId);
+
+                // Visual feedback - change button temporarily
+                const submitBtn = event.target.querySelector('button[type="submit"]');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '✅ ¡Gol registrado!';
+                submitBtn.style.background = 'linear-gradient(135deg, #48bb78 0%, #38a169 100%)';
+                
+                setTimeout(() => {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                }, 2000);
+
+                // Reset form but keep it expanded
+                document.getElementById(`equipo-${partidoId}`).value = '';
+                document.getElementById(`jugador-${partidoId}`).value = '';
+                document.getElementById(`minuto-${partidoId}`).value = '';
+            } else {
+                alert('Error al registrar gol');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error de conexión');
+        }
+    }
+
+    function updateScoreUI(partidoId, golesLocal, golesVisitante) {
+        const card = document.querySelector(`[data-partido-id="${partidoId}"]`);
+        card.querySelector('.score-local').textContent = golesLocal;
+        card.querySelector('.score-visitante').textContent = golesVisitante;
+    }
+
+    async function updateGoalsList(partidoId) {
+        try {
+            const response = await fetch(`/Promiedos/ObtenerGolesPartido?partidoId=${partidoId}`);
+            if (response.ok) {
+                const goles = await response.json();
+                updateGoalsListUI(partidoId, goles);
+            }
+        } catch (error) {
+            console.error('Error al actualizar lista de goles:', error);
+        }
+    }
+
+    function updateGoalsListUI(partidoId, goles) {
+        const card = document.querySelector(`[data-partido-id="${partidoId}"]`);
+        
+        // Update local team goals
+        const golesLocal = goles.filter(g => g.equipo.toLowerCase() === 'local');
+        const localListContainer = card.querySelector('.goles-local-list');
+        
+        if (golesLocal.length > 0) {
+            const localListHTML = golesLocal
+                .sort((a, b) => a.minuto - b.minuto)
+                .map(gol => `
+                    <li>
+                        <div class="goal-chip">
+                            <span class="goal-minute">'${gol.minuto}</span>
+                            <span class="goal-player">${gol.jugador}</span>
+                        </div>
+                    </li>
+                `)
+                .join('');
+            localListContainer.innerHTML = `<ul>${localListHTML}</ul>`;
+        } else {
+            localListContainer.innerHTML = '<div class="no-goals">Sin goles</div>';
+        }
+        
+        // Update visiting team goals
+        const golesVisitante = goles.filter(g => g.equipo.toLowerCase() === 'visitante');
+        const visitanteListContainer = card.querySelector('.goles-visitante-list');
+        
+        if (golesVisitante.length > 0) {
+            const visitanteListHTML = golesVisitante
+                .sort((a, b) => a.minuto - b.minuto)
+                .map(gol => `
+                    <li>
+                        <div class="goal-chip">
+                            <span class="goal-minute">'${gol.minuto}</span>
+                            <span class="goal-player">${gol.jugador}</span>
+                        </div>
+                    </li>
+                `)
+                .join('');
+            visitanteListContainer.innerHTML = `<ul>${visitanteListHTML}</ul>`;
+        } else {
+            visitanteListContainer.innerHTML = '<div class="no-goals">Sin goles</div>';
+        }
+    }
+</script>
