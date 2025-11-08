@@ -9,6 +9,8 @@ namespace TpSignalR.Logica
         List<Partido> ObtenerTodosLosPartidos();
         Partido ObtenerPartidoPorId(int id);
         List<Gol> ObtenerGolesPorPartido(int partidoId);
+        void ActualizarPartido(Partido partido);
+        void RegistrarGol(Gol gol);
     }
 
     public class PartidoLogica : IPartidoLogica
@@ -41,6 +43,18 @@ namespace TpSignalR.Logica
                 .Where(g => g.PartidoId == partidoId)
                 .OrderBy(g => g.Minuto)
                 .ToList();
+        }
+
+        public void ActualizarPartido(Partido partido)
+        {
+            _context.Partidos.Update(partido);
+            _context.SaveChanges();
+        }
+
+        public void RegistrarGol(Gol gol)
+        {
+            _context.Goles.Add(gol);
+            _context.SaveChanges();
         }
     }
 }
