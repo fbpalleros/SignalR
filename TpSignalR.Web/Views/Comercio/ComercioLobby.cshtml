@@ -1,0 +1,78 @@
+﻿@using TpSignalR.Web.Models
+@{
+    ViewData["Title"] = "Comercio Lobby";
+    var pedidos = ViewBag.Pedidos as List<ComercioPedidoViewModel> ?? new List<ComercioPedidoViewModel>();
+    var estados = new[] { "en preparación", "buscando repartidor", "en camino", "finalizada" };
+}
+
+@Html.AntiForgeryToken()
+
+<h2>Pedidos del Comercio (id = 1)</h2>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Total</th>
+            <th>Estado</th>
+            <th>Usuario Id</th>
+            <th>Producto Id</th>
+            <th>Producto Nombre</th>
+            <th>Producto Categoria</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var p in pedidos)
+        {
+            <tr>
+                <td>@p.Total</td>
+                <td>
+                    <select class="form-select pedido-estado" data-pedido-id="@p.PedidoId">
+                        @foreach (var e in estados)
+                        {
+                            if (e == p.Estado)
+                            {
+                                <text><option value="@e" selected="selected">@e</option></text>
+                            }
+                            else
+                            {
+                                <text><option value="@e">@e</option></text>
+                            }
+                        }
+                    </select>
+                </td>
+                <td>@p.UsuarioFinalId</td>
+                <td>@p.ProductoId</td>
+                <td>@p.ProductoNombre</td>
+                <td>@p.ProductoCategoria</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.pedido-estado').forEach(function (sel) {
+                sel.addEventListener('change', function () {
+                    var pedidoId = this.getAttribute('data-pedido-id');
+                    var nuevoEstado = this.value;
+
+                    fetch('/Comercio/ActualizarEstadoPedido', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                        },
+                        body: JSON.stringify({ pedidoId: parseInt(pedidoId), nuevoEstado: nuevoEstado })
+                    }).then(function (res) {
+                        if (!res.ok) {
+                            alert('Error al actualizar estado');
+                        }
+                    }).catch(function () {
+                        alert('Error de red al actualizar estado');
+                    });
+                });
+            });
+        });
+    </script>
+}

@@ -37,8 +37,8 @@ BEGIN
     CREATE TABLE Usuarios (
         Id INT PRIMARY KEY IDENTITY(1,1),
         Nombre NVARCHAR(50) NOT NULL,
-        Latitud FLOAT NULL,
-        Longitud FLOAT NULL
+        Latitud FLOAT,
+        Longitud FLOAT 
     );
     PRINT '✓ Table Usuarios created';
 END
