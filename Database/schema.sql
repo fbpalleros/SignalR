@@ -202,7 +202,7 @@ CREATE TABLE Pedido (
     comercio_id INT NOT NULL,
     repartidor_id INT NULL,
     fecha_pedido DATETIME DEFAULT GETDATE(),
-    estado VARCHAR(20) DEFAULT 'pendiente',
+    estado VARCHAR(20) DEFAULT 'pendiente' NOT NULL,
     total DECIMAL(10,2) DEFAULT 0,
     FOREIGN KEY (usuario_id) REFERENCES UsuarioFinal(id),
     FOREIGN KEY (comercio_id) REFERENCES Comercio(id),
@@ -377,3 +377,6 @@ ALTER COLUMN producto_id INT NOT NULL;
 
 PRINT '✓ Pedido.producto_id set to NOT NULL with default value 1 for existing records';
 GO
+
+SELECT *
+FROM Pedido

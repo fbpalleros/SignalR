@@ -64,7 +64,6 @@ namespace TpSignalR.Web.Controllers
                     {
                         PedidoId = pedido.PedidoId,
                         Total = producto.Precio,
-                        Estado = pedido.Estado,
                         UsuarioFinalId = pedido.UsuarioFinalId,
                         ProductoId = producto.Id,
                         ProductoNombre = producto.Nombre,

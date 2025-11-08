@@ -77,7 +77,7 @@ namespace TpSignalR.Logica
                 RepartidorId = repartidor.RepartidorId,
                 ProductoId = idProducto,
                 Total = total,
-                Estado = "Pendiente",
+                Estado = "pendiente",
             };
 
             _context.Pedido.Add(pedido);
