@@ -76,6 +76,17 @@ namespace TpSignalR.Web.Controllers
                         .SendAsync("NuevoPedido", pedidoInfo);
 
                     System.Console.WriteLine($"✅ Nuevo pedido enviado por SignalR al grupo user-{pedido.ComercioId}");
+
+                    // 🔔 Enviar notificación a todos los usuarios (fire-and-forget) indicando pedido pendiente
+                    _ = _hubContext.Clients.All.SendAsync("Notify", "Su pedido esta pendiente")
+                        .ContinueWith(t => {
+                            if (t.IsFaulted)
+                            {
+                                System.Console.WriteLine($"❌ Error enviando Notify a todos: {t.Exception?.GetBaseException().Message}");
+                            }
+                        }, TaskContinuationOptions.OnlyOnFaulted);
+
+                    System.Console.WriteLine($"✅ Notificación enviada a todos: Su pedido esta pendiente");
                 }
             }
             catch (System.Exception ex)

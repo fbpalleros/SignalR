@@ -66,7 +66,7 @@ namespace TpSignalR.Web.Controllers
             _context.SaveChanges();
 
             // Si el nuevo estado es "buscando repartidor" notificamos al repartidor (usuario id 3)
-            if (model.NuevoEstado == "buscando repartidor")
+            if (!string.IsNullOrEmpty(model.NuevoEstado) && model.NuevoEstado.ToLowerInvariant() == "buscando repartidor")
             {
                 // Construir payload con información útil
                 var producto = _context.Producto.FirstOrDefault(prod => prod.Id == pedido.ProductoId);
@@ -81,8 +81,25 @@ namespace TpSignalR.Web.Controllers
                     ProductoCategoria = producto?.Categoria
                 };
 
-                // Enviar solo al usuario con id 3 (grupo "user-3")
+                // Enviar solo al usuario con id 3 (grupo "user-3") - fire-and-forget
                 _hubContext.Clients.Group($"user-3").SendAsync("NuevoPedido", payload);
+            }
+
+            // Notificar a todos los usuarios de la app cuando cambia el estado
+            string MapEstadoToMessage(string estado)
+            {
+                var e = (estado ?? string.Empty).ToLowerInvariant();
+                if (e.Contains("pend")) return "Su pedido esta pendiente";
+                if (e.Contains("camino") || e.Contains("en camino") || e.Contains("en_camino")) return "Su pedido esta en camino";
+                if (e.Contains("entreg") || e.Contains("finaliz")) return "Su pedido ha sido entregado.";
+                return null;
+            }
+
+            var notifyMessage = MapEstadoToMessage(model.NuevoEstado);
+            if (!string.IsNullOrEmpty(notifyMessage))
+            {
+                // Enviar a todos (fire-and-forget)
+                _hubContext.Clients.All.SendAsync("Notify", notifyMessage);
             }
 
             return Ok();
