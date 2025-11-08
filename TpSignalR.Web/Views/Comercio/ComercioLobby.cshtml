@@ -179,49 +179,59 @@
 
 <!-- === SCRIPTS DE SIGNALR === -->
 @section Scripts {
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
     <script>
+        // comercioId used only to filter UI updates for this comercio panel, it MUST NOT be used to register SignalR groups
         const comercioId = 1;
 
-        const connection = new signalR.HubConnectionBuilder()
-            .withUrl("/notificationHub")
-            .build();
+        // Use the global notification connection created in the layout
+        function waitForNotificationConnection(timeoutMs = 3000) {
+            return new Promise((resolve, reject) => {
+                const start = Date.now();
+                const check = () => {
+                    if (window.notificationConnection && window.notificationConnection.state === signalR.HubConnectionState.Connected) {
+                        return resolve(window.notificationConnection);
+                    }
+                    if (Date.now() - start > timeoutMs) return reject(new Error('notificationConnection not ready'));
+                    setTimeout(check, 100);
+                };
+                check();
+            });
+        }
 
-        connection.start()
-            .then(() => {
-                console.log("✅ Conectado al Hub del comercio:", comercioId);
-                connection.invoke("Register", comercioId);
-            })
-            .catch(err => console.error("❌ Error al conectar:", err));
+        // Register handler for NuevoPedido on the global connection
+        waitForNotificationConnection().then(conn => {
+            try {
+                // Ensure we don't double-register handler
+                conn.off && conn.off('NuevoPedido');
+            } catch(e) {}
 
-        // === Cuando llega un nuevo pedido ===
-        connection.on("NuevoPedido", function (pedido) {
-            if (pedido.comercioId !== comercioId) return;
+            conn.on('NuevoPedido', function (pedido) {
+                // pedido comes from server; keep the UI filtered by comercioId
+                if (!pedido) return;
+                if (pedido.comercioId !== comercioId) return;
 
-            const tbody = document.querySelector(".tabla-pedidos tbody");
-            const tr = document.createElement("tr");
-            tr.classList.add("highlight");
+                const tbody = document.querySelector('.tabla-pedidos tbody');
+                const tr = document.createElement('tr');
+                tr.classList.add('highlight');
 
-            tr.innerHTML = `
-                <td>$${pedido.total}</td>
-                <td>
-                    <select class="form-select pedido-estado" data-pedido-id="${pedido.pedidoId}">
-                        <option value="${pedido.estado}" selected>${pedido.estado}</option>
-                    </select>
-                </td>
-                <td>${pedido.usuarioFinalId}</td>
-                <td>${pedido.productoNombre ?? '(sin nombre)'}</td>
-                <td>${pedido.productoCategoria ?? '(sin categoría)'}</td>
-            `;
+                tr.innerHTML = `
+                    <td>$${pedido.total}</td>
+                    <td>
+                        <select class="form-select pedido-estado" data-pedido-id="${pedido.pedidoId}">
+                            <option value="${pedido.estado}" selected>${pedido.estado}</option>
+                        </select>
+                    </td>
+                    <td>${pedido.usuarioFinalId}</td>
+                    <td>${pedido.productoNombre ?? '(sin nombre)'}</td>
+                    <td>${pedido.productoCategoria ?? '(sin categoría)'}</td>
+                `;
 
-            tbody.prepend(tr);
+                tbody.prepend(tr);
+                setTimeout(() => tr.classList.remove('highlight'), 2000);
+                actualizarEstadisticas();
+            });
 
-            // Efecto visual
-            setTimeout(() => tr.classList.remove("highlight"), 2000);
-
-            // Actualizar tarjetas de estadísticas
-            actualizarEstadisticas();
-        });
+        }).catch(err => console.warn('Notification connection not ready in ComercioLobby:', err.message));
 
         // === Actualiza estado de pedido manualmente ===
         document.addEventListener('change', (e) => {

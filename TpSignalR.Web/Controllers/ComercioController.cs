@@ -65,41 +65,84 @@ namespace TpSignalR.Web.Controllers
             pedido.Estado = model.NuevoEstado;
             _context.SaveChanges();
 
-            // Si el nuevo estado es "buscando repartidor" notificamos al repartidor (usuario id 3)
-            if (!string.IsNullOrEmpty(model.NuevoEstado) && model.NuevoEstado.ToLowerInvariant() == "buscando repartidor")
+            // Obtener nombre de producto para mensajes
+            var producto = _context.Producto.FirstOrDefault(prod => prod.Id == pedido.ProductoId);
+            var productName = producto?.Nombre ?? "(producto)";
+
+            // Definir grupos por rol
+            var comercioIds = new[] { 1, 4 };
+            var clienteIds = new[] { 2, 6 };
+            var repartidorIds = new[] { 3, 5 };
+
+            var estadoLower = (model.NuevoEstado ?? string.Empty).ToLowerInvariant();
+
+            // Cuando el pedido entra en preparación
+            if (estadoLower.Contains("prep") || estadoLower.Contains("prepar"))
             {
-                // Construir payload con información útil
-                var producto = _context.Producto.FirstOrDefault(prod => prod.Id == pedido.ProductoId);
-                var payload = new ComercioPedidoViewModel
+                // Comercio: Se esta preparando el pedido
+                foreach (var cid in comercioIds)
                 {
-                    PedidoId = pedido.PedidoId,
-                    Total = pedido.Total,
-                    Estado = pedido.Estado,
-                    UsuarioFinalId = pedido.UsuarioFinalId,
-                    ProductoId = pedido.ProductoId,
-                    ProductoNombre = producto?.Nombre,
-                    ProductoCategoria = producto?.Categoria
-                };
+                    var msg = $"Se esta preparando el pedido \"{productName}\"";
+                    _ = _hubContext.Clients.Group($"user-{cid}").SendAsync("Notify", msg)
+                        .ContinueWith(t => { if (t.IsFaulted) System.Console.WriteLine($"❌ Notify error user-{cid}: {t.Exception?.GetBaseException().Message}"); }, System.Threading.Tasks.TaskContinuationOptions.OnlyOnFaulted);
+                }
 
-                // Enviar solo al usuario con id 3 (grupo "user-3") - fire-and-forget
-                _hubContext.Clients.Group($"user-3").SendAsync("NuevoPedido", payload);
+                // Cliente: Su pedido "X" esta en preparacion
+                foreach (var cl in clienteIds)
+                {
+                    var msg = $"Su pedido \"{productName}\" esta en preparacion";
+                    _ = _hubContext.Clients.Group($"user-{cl}").SendAsync("Notify", msg)
+                        .ContinueWith(t => { if (t.IsFaulted) System.Console.WriteLine($"❌ Notify error user-{cl}: {t.Exception?.GetBaseException().Message}"); }, System.Threading.Tasks.TaskContinuationOptions.OnlyOnFaulted);
+                }
             }
 
-            // Notificar a todos los usuarios de la app cuando cambia el estado
-            string MapEstadoToMessage(string estado)
+            // Cuando el pedido pasa a 'en camino'
+            if (estadoLower.Contains("camino") || estadoLower.Contains("en camino") || estadoLower.Contains("en_camino"))
             {
-                var e = (estado ?? string.Empty).ToLowerInvariant();
-                if (e.Contains("pend")) return "Su pedido esta pendiente";
-                if (e.Contains("camino") || e.Contains("en camino") || e.Contains("en_camino")) return "Su pedido esta en camino";
-                if (e.Contains("entreg") || e.Contains("finaliz")) return "Su pedido ha sido entregado.";
-                return null;
+                // Cliente: Su pedido "X" esta en camino
+                foreach (var cl in clienteIds)
+                {
+                    var msg = $"Su pedido \"{productName}\" esta en camino";
+                    _ = _hubContext.Clients.Group($"user-{cl}").SendAsync("Notify", msg)
+                        .ContinueWith(t => { if (t.IsFaulted) System.Console.WriteLine($"❌ Notify error user-{cl}: {t.Exception?.GetBaseException().Message}"); }, System.Threading.Tasks.TaskContinuationOptions.OnlyOnFaulted);
+                }
+
+                // Repartidor: Estas enviando el pedido "X"
+                foreach (var rid in repartidorIds)
+                {
+                    var msg = $"Estas enviando el pedido \"{productName}\"";
+                    _ = _hubContext.Clients.Group($"user-{rid}").SendAsync("Notify", msg)
+                        .ContinueWith(t => { if (t.IsFaulted) System.Console.WriteLine($"❌ Notify error user-{rid}: {t.Exception?.GetBaseException().Message}"); }, System.Threading.Tasks.TaskContinuationOptions.OnlyOnFaulted);
+                }
+
             }
 
-            var notifyMessage = MapEstadoToMessage(model.NuevoEstado);
-            if (!string.IsNullOrEmpty(notifyMessage))
+            // Cuando el pedido se finaliza / entregado
+            if (estadoLower.Contains("entreg") || estadoLower.Contains("finaliz"))
             {
-                // Enviar a todos (fire-and-forget)
-                _hubContext.Clients.All.SendAsync("Notify", notifyMessage);
+                // Cliente: Su pedido ha sido entregado
+                foreach (var cl in clienteIds)
+                {
+                    var msg = $"Su pedido \"{productName}\" ha sido entregado.";
+                    _ = _hubContext.Clients.Group($"user-{cl}").SendAsync("Notify", msg)
+                        .ContinueWith(t => { if (t.IsFaulted) System.Console.WriteLine($"❌ Notify error user-{cl}: {t.Exception?.GetBaseException().Message}"); }, System.Threading.Tasks.TaskContinuationOptions.OnlyOnFaulted);
+                }
+
+                // Repartidor: Entregaste el pedido "X"
+                foreach (var rid in repartidorIds)
+                {
+                    var msg = $"Entregaste el pedido \"{productName}\"";
+                    _ = _hubContext.Clients.Group($"user-{rid}").SendAsync("Notify", msg)
+                        .ContinueWith(t => { if (t.IsFaulted) System.Console.WriteLine($"❌ Notify error user-{rid}: {t.Exception?.GetBaseException().Message}"); }, System.Threading.Tasks.TaskContinuationOptions.OnlyOnFaulted);
+                }
+
+                // Comercio: El pedido de tu tienda ha sido entregado correctamente
+                foreach (var cid in comercioIds)
+                {
+                    var msg = $"El pedido de tu tienda ha sido entregado correctamente";
+                    _ = _hubContext.Clients.Group($"user-{cid}").SendAsync("Notify", msg)
+                        .ContinueWith(t => { if (t.IsFaulted) System.Console.WriteLine($"❌ Notify error user-{cid}: {t.Exception?.GetBaseException().Message}"); }, System.Threading.Tasks.TaskContinuationOptions.OnlyOnFaulted);
+                }
             }
 
             return Ok();

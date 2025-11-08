@@ -109,7 +109,7 @@
 
         .toast {
             min-width: 320px;
-            max-width: 480px;
+            max-width: 540px;
             background: linear-gradient(180deg, rgba(6,12,10,0.95), rgba(8,18,14,0.95));
             color: #e6fff6;
             border-radius: 12px;
@@ -139,7 +139,7 @@
             justify-content: center;
             border-radius: 10px;
             font-weight: 700;
-            font-size: 20px;
+            font-size: 22px;
             background: rgba(255,255,255,0.03);
             color: #00bfa6;
             flex: 0 0 52px;
@@ -152,8 +152,8 @@
         }
 
         .toast .title {
-            font-weight: 700;
-            font-size: 1rem;
+            font-weight: 800;
+            font-size: 1.05rem;
             margin-bottom: 4px;
             color: #ffffff;
             white-space: nowrap;
@@ -162,16 +162,27 @@
         }
 
         .toast .message {
-            font-size: 0.95rem;
+            font-size: 1rem;
             opacity: 0.92;
             color: #cfeee4;
-            line-height: 1.2;
+            line-height: 1.25;
             word-break: break-word;
         }
 
+        /* semantic types (kept for backward compatibility) */
         .toast.success { border-left-color: #00c853; }
         .toast.info { border-left-color: #00bfa6; }
         .toast.warning { border-left-color: #ffb020; }
+
+        /* role-based variants */
+        .toast.role-cliente { border-left-color: #1e90ff; }
+        .toast.role-cliente .icon { color: #1e90ff; background: rgba(30,144,255,0.06); }
+
+        .toast.role-repartidor { border-left-color: #ff8c00; }
+        .toast.role-repartidor .icon { color: #ff8c00; background: rgba(255,140,0,0.06); }
+
+        .toast.role-comercio { border-left-color: #00c853; }
+        .toast.role-comercio .icon { color: #00c853; background: rgba(0,200,83,0.06); }
 
         @@media (max-width: 768px) {
             .toast-container {
@@ -237,6 +248,9 @@
                 var uid = -1;
             }
 
+            // Expose uid for other scripts
+            window.notificationUid = uid;
+
             console.log('SignalR init, uid=', uid);
 
             function ensureContainer() {
@@ -250,33 +264,83 @@
                 }
             }
 
-            // Expose a global helper for pages
-            window.showNotification = function(type, title, message, timeout, customIcon) {
+            // Helper to map numeric uid to role name
+            window.getRoleForUid = function(uid) {
+                try {
+                    const id = Number(uid);
+                    if (!id || id <= 0) return null;
+                    const comercio = [1,4];
+                    const cliente = [2,6];
+                    const repartidor = [3,5];
+                    if (comercio.includes(id)) return 'comercio';
+                    if (cliente.includes(id)) return 'cliente';
+                    if (repartidor.includes(id)) return 'repartidor';
+                    return null;
+                } catch(e) {
+                    return null;
+                }
+            };
+
+            // Expose a global helper for pages (now accepts optional role)
+            window.showNotification = function(type, title, message, timeout, customIcon, role) {
                 try {
                     timeout = timeout || 5000;
                     ensureContainer();
                     const container = document.getElementById('toastContainer');
                     if (!container) return;
 
+                    // Resolve role: explicit param > derived from session uid
+                    const resolvedRole = role || window.getRoleForUid(window.notificationUid);
+                    const roleClass = resolvedRole ? `role-${resolvedRole}` : '';
+
                     const toast = document.createElement('div');
-                    toast.className = `toast ${type}`;
+                    toast.className = `toast ${type || ''} ${roleClass}`.trim();
 
                     const icon = document.createElement('div');
                     icon.className = 'icon';
-                    icon.textContent = customIcon || (type === 'success' ? '✅' : (type === 'warning' ? '⚠️' : 'ℹ️'));
+                    // Default icon will be role-specific if no custom icon provided
+                    let defaultIcon = customIcon || 'ℹ️';
+                    if (!customIcon) {
+                        if (resolvedRole === 'comercio') defaultIcon = '🏪';
+                        else if (resolvedRole === 'cliente') defaultIcon = '👤';
+                        else if (resolvedRole === 'repartidor') defaultIcon = '🏍️';
+                    }
+                    icon.textContent = defaultIcon;
+
+                    // Color the icon based on role if any
+                    if (resolvedRole === 'comercio') {
+                        icon.style.color = '#00c853';
+                        icon.style.background = 'rgba(0,200,83,0.06)';
+                    } else if (resolvedRole === 'cliente') {
+                        icon.style.color = '#1e90ff';
+                        icon.style.background = 'rgba(30,144,255,0.06)';
+                    } else if (resolvedRole === 'repartidor') {
+                        icon.style.color = '#ff8c00';
+                        icon.style.background = 'rgba(255,140,0,0.06)';
+                    }
 
                     const content = document.createElement('div');
                     content.className = 'content';
 
-                    const t = document.createElement('div');
-                    t.className = 'title';
-                    t.textContent = title || '';
+                    // Build a title with role-specific extra emojis
+                    const titleEl = document.createElement('div');
+                    titleEl.className = 'title';
+                    let decoratedTitle = title || '';
+                    if (resolvedRole === 'comercio') {
+                        // two store icons around title
+                        decoratedTitle = `🏪 ${decoratedTitle} 🏪`;
+                      } else if (resolvedRole === 'cliente') {
+                        decoratedTitle = `👤 ${decoratedTitle}`;
+                      } else if (resolvedRole === 'repartidor') {
+                        decoratedTitle = `🏍️ ${decoratedTitle}`;
+                      }
+                    titleEl.textContent = decoratedTitle;
 
                     const m = document.createElement('div');
                     m.className = 'message';
                     m.textContent = message || '';
 
-                    content.appendChild(t);
+                    content.appendChild(titleEl);
                     content.appendChild(m);
 
                     toast.appendChild(icon);
@@ -301,57 +365,84 @@
                 }
             };
 
-            if (uid && uid > 0) {
-                const connection = new signalR.HubConnectionBuilder()
+            // Create and expose a single notification hub connection for the whole layout
+            const notificationConnection = new signalR.HubConnectionBuilder()
                     .withUrl('/notificationHub')
                     .withAutomaticReconnect()
                     .configureLogging(signalR.LogLevel.Information)
                     .build();
 
-                connection.on('Notify', function(message) {
-                    console.log('Notify received:', message);
-                    try {
-                        var m = (message || '').toString();
-                        var type = 'info';
-                        var low = m.toLowerCase();
+            // Expose globally for pages to reuse
+            window.notificationConnection = notificationConnection;
+
+            notificationConnection.on('Notify', function(message) {
+                console.log('Notify received:', message);
+                try {
+                    var roleFromSession = window.getRoleForUid(window.notificationUid);
+
+                    // Messages can be objects (structured) or strings. Normalize.
+                    var payload = message;
+                    var msgText = '';
+                    var title = 'Pedido';
+                    var explicitType = null;
+                    var explicitRole = null;
+
+                    if (payload && typeof payload === 'object') {
+                        explicitRole = payload.role || payload.targetRole || null;
+                        msgText = payload.message || payload.text || payload.msg || JSON.stringify(payload);
+                        title = payload.title || title;
+                        explicitType = payload.type || null;
+                    } else {
+                        msgText = (payload || '').toString();
+                    }
+
+                    var type = explicitType || 'info';
+                    var low = (msgText || '').toLowerCase();
+                    if (!explicitType) {
                         if (low.indexOf('entreg') !== -1 || low.indexOf('finaliz') !== -1) type = 'success';
                         else if (low.indexOf('pend') !== -1) type = 'warning';
                         else if (low.indexOf('camino') !== -1) type = 'info';
-
-                        window.showNotification(type, 'Pedido', m);
-                    } catch(e) {
-                        console.error('Error handling Notify', e);
-                        try { alert(message); } catch(er) { console.warn('alert failed', er); }
                     }
-                });
 
-                connection.onclose(function(err){
-                    console.warn('SignalR connection closed', err);
-                });
+                    var roleToUse = explicitRole || roleFromSession;
 
-                connection.onreconnecting(function(err){
-                    console.warn('SignalR reconnecting', err);
-                });
+                    window.showNotification(type, title, msgText, (payload && payload.timeout) || 5000, (payload && payload.customIcon) || null, roleToUse);
+                } catch(e) {
+                    console.error('Error handling Notify', e);
+                    try { alert(message); } catch(er) { console.warn('alert failed', er); }
+                }
+            });
 
-                connection.onreconnected(function(connectionId){
-                    console.log('SignalR reconnected, connectionId=', connectionId);
-                    // Re-register after reconnect
-                    connection.invoke('Register', uid).catch(function(err){ console.error('Register after reconnect failed', err.toString()); });
-                });
+            notificationConnection.onclose(function(err){
+                console.warn('SignalR connection closed', err);
+            });
 
-                connection.start()
-                    .then(function(){
-                        console.log('SignalR connected, invoking Register with uid=', uid);
-                        return connection.invoke('Register', uid);
-                    })
-                    .then(function(){
-                        console.log('Register invoked successfully');
-                    })
-                    .catch(function(err){ console.error('SignalR start or register failed', err.toString()); });
+            notificationConnection.onreconnecting(function(err){
+                console.warn('SignalR reconnecting', err);
+            });
 
-            } else {
-                console.log('No usuarioId in session, skipping SignalR registration');
-            }
+            notificationConnection.onreconnected(function(connectionId){
+                console.log('SignalR reconnected, connectionId=', connectionId);
+                // Re-register after reconnect
+                if (window.notificationUid && window.notificationUid > 0) {
+                    notificationConnection.invoke('Register', window.notificationUid).catch(function(err){ console.error('Register after reconnect failed', err.toString()); });
+                }
+            });
+
+            // Start and register (single connection)
+            notificationConnection.start()
+                .then(function(){
+                    console.log('NotificationHub connected, invoking Register with uid=', uid);
+                    if (uid && uid > 0) {
+                        return notificationConnection.invoke('Register', uid);
+                    }
+                    return Promise.resolve();
+                })
+                .then(function(){
+                    console.log('Register invoked successfully');
+                })
+                .catch(function(err){ console.error('NotificationHub start or register failed', err.toString()); });
+
         })();
     </script>
     @await RenderSectionAsync("Scripts", required: false)

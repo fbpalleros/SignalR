@@ -72,22 +72,46 @@ namespace TpSignalR.Web.Controllers
                         ComercioId = pedido.ComercioId
                     };
 
-                    // 🔔 Enviar al grupo del comercio correspondiente
+                    // 🔔 Enviar al grupo del comercio correspondiente (si lo necesitás)
                     await _hubContext.Clients.Group($"user-{pedido.ComercioId}")
                         .SendAsync("NuevoPedido", pedidoInfo);
 
                     System.Console.WriteLine($"✅ Nuevo pedido enviado por SignalR al grupo user-{pedido.ComercioId}");
 
-                    // 🔔 Enviar notificación a todos los usuarios (fire-and-forget) indicando pedido pendiente
-                    _ = _hubContext.Clients.All.SendAsync("Notify", "Su pedido esta pendiente")
-                        .ContinueWith(t => {
-                            if (t.IsFaulted)
-                            {
-                                System.Console.WriteLine($"❌ Error enviando Notify a todos: {t.Exception?.GetBaseException().Message}");
-                            }
-                        }, TaskContinuationOptions.OnlyOnFaulted);
+                    // Enviar notificaciones tailor-made a usuarios 1..6 según rol
+                    var comercioIds = new[] { 1, 4 };
+                    var clienteIds = new[] { 2, 6 };
+                    var repartidorIds = new[] { 3, 5 };
 
-                    System.Console.WriteLine($"✅ Notificación enviada a todos: Su pedido esta pendiente");
+                    // Build messages
+                    string productName = producto.Nombre ?? "(producto)";
+
+                    // Event: pedido creado
+                    // Comercio: Tienes un nuevo pedido de "{producto}"
+                    foreach (var cid in comercioIds)
+                    {
+                        var msg = $"Tienes un nuevo pedido de \"{productName}\"";
+                        _ = _hubContext.Clients.Group($"user-{cid}").SendAsync("Notify", msg)
+                            .ContinueWith(t => { if (t.IsFaulted) System.Console.WriteLine($"❌ Notify error user-{cid}: {t.Exception?.GetBaseException().Message}"); }, TaskContinuationOptions.OnlyOnFaulted);
+                    }
+
+                    // Repartidor: Tienes un pedido nuevo para entragar
+                    foreach (var rid in repartidorIds)
+                    {
+                        var msg = $"Tienes un pedido nuevo para entragar";
+                        _ = _hubContext.Clients.Group($"user-{rid}").SendAsync("Notify", msg)
+                            .ContinueWith(t => { if (t.IsFaulted) System.Console.WriteLine($"❌ Notify error user-{rid}: {t.Exception?.GetBaseException().Message}"); }, TaskContinuationOptions.OnlyOnFaulted);
+                    }
+
+                    // Cliente: si quieres notificar a todos los clientes, enviá a los clienteIds
+                    foreach (var cl in clienteIds)
+                    {
+                        var msg = $"Su pedido \"{productName}\" esta en preparacion"; // on creation -> preparacion
+                        _ = _hubContext.Clients.Group($"user-{cl}").SendAsync("Notify", msg)
+                            .ContinueWith(t => { if (t.IsFaulted) System.Console.WriteLine($"❌ Notify error user-{cl}: {t.Exception?.GetBaseException().Message}"); }, TaskContinuationOptions.OnlyOnFaulted);
+                    }
+
+                    System.Console.WriteLine($"✅ Notificaciones de creación enviadas");
                 }
             }
             catch (System.Exception ex)
