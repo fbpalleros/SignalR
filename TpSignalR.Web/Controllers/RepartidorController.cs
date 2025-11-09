@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.SignalR;
 using TpSignalR.Repositorio;
 using TpSignalR.Web.Hubs;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace TpSignalR.Web.Controllers
 {
@@ -22,61 +23,55 @@ namespace TpSignalR.Web.Controllers
             return View();
         }
 
+        // ✅ Repartidor acepta un pedido
         [HttpPost]
-        public IActionResult AceptarPedido([FromBody] AceptarPedidoModel model)
+        public async Task<IActionResult> AceptarPedido([FromBody] AceptarPedidoModel model)
         {
             Console.WriteLine("AceptarPedido endpoint invoked");
-            Console.WriteLine($"Request Content-Type: {Request.ContentType}");
-            Console.WriteLine($"Request Verification Token header: {Request.Headers["RequestVerificationToken"]}");
 
             if (model == null)
-            {
-                Console.WriteLine("AceptarPedido: model binding produced null model");
                 return BadRequest(new { error = "Model null" });
-            }
-
-            Console.WriteLine($"AceptarPedido: PedidoId={model.PedidoId}, RepartidorId={model.RepartidorId}");
 
             var pedido = _context.Pedido.FirstOrDefault(p => p.PedidoId == model.PedidoId);
             if (pedido == null) return NotFound();
 
-            // Only allow accepting if it's still looking for a repartidor
+            // Solo puede aceptarse si está buscando repartidor
             if (pedido.Estado != "buscando repartidor")
-            {
                 return Conflict(new { message = "Pedido ya no está disponible" });
-            }
 
-            // Assign repartidor and change state
+            // Asignar repartidor y actualizar estado
             pedido.Estado = "en camino";
             pedido.RepartidorId = model.RepartidorId;
             _context.SaveChanges();
 
-            // Notify all clients so other repartidores remove the pedido from their lists
-            _hubContext.Clients.All.SendAsync("PedidoAceptado", pedido.PedidoId);
+            // 🔹 1. Notificar a todos que este pedido fue tomado
+            await _hubContext.Clients.All.SendAsync("PedidoAceptado", pedido.PedidoId);
 
-            return Ok();
+            // 🔹 2. Notificar evento que inicia el mapa (PedidoEnCamino)
+            await _hubContext.Clients.All.SendAsync("PedidoEnCamino", new
+            {
+                PedidoId = pedido.PedidoId,
+                ComercioLat = -34.615803, // reemplazá por pedido.Comercio.Latitud
+                ComercioLng = -58.433297, // reemplazá por pedido.Comercio.Longitud
+                UsuarioLat = -34.653480,  // reemplazá por pedido.UsuarioFinal.Latitud
+                UsuarioLng = -58.668710,  // reemplazá por pedido.UsuarioFinal.Longitud
+                Estado = "en camino"
+            });
+
+            // 🔹 3. Confirmar al cliente JS que todo salió bien
+            return Json(new { success = true, pedidoId = pedido.PedidoId });
         }
 
         [HttpPost]
         public IActionResult RechazarPedido([FromBody] RechazarPedidoModel model)
         {
-            Console.WriteLine("RechazarPedido endpoint invoked");
-            Console.WriteLine($"Request Content-Type: {Request.ContentType}");
-            Console.WriteLine($"Request Verification Token header: {Request.Headers["RequestVerificationToken"]}");
-
             if (model == null)
-            {
-                Console.WriteLine("RechazarPedido: model binding produced null model");
                 return BadRequest(new { error = "Model null" });
-            }
-
-            Console.WriteLine($"RechazarPedido: PedidoId={model.PedidoId}, RepartidorId={model.RepartidorId}");
 
             var pedido = _context.Pedido.FirstOrDefault(p => p.PedidoId == model.PedidoId);
             if (pedido == null) return NotFound();
 
-            // Do nothing to the pedido (remains 'buscando repartidor'), but optionally log or notify
-            // Notify the client who rejected (could be used for UX)
+            // Mantiene el estado "buscando repartidor"
             return Ok();
         }
     }
