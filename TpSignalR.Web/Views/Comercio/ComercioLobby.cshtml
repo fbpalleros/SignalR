@@ -173,78 +173,72 @@
 </style>
 <!-- === SCRIPTS DE SIGNALR === -->
 @section Scripts {
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
     <script>
             const comercioId = 1;
-            // Inyecta la lista de estados del servidor en JS (evita hardcode si ya viene del servidor)
             const estados = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(estados));
-            const connection = new signalR.HubConnectionBuilder()
-                .withUrl("/notificationHub")
-                .build();
 
+            (function(){
+                try {
+                    if (!window.notificationConnection) {
+                        console.warn('Global notificationConnection no está disponible, creando uno temporal...');
+                        window.notificationConnection = new signalR.HubConnectionBuilder().withUrl('/notificationHub').build();
+                        window.notificationConnection.start().then(function(){
+                            window.notificationConnection.invoke('Register', comercioId).catch(function(err){ console.error('Register failed', err); });
+                        }).catch(function(err){ console.error('Startup of temp connection failed', err); });
+                    } else {
+                        window.notificationConnection.invoke('Register', comercioId).catch(function(err){ console.error('Register failed', err); });
+                    }
 
+                    const nc = window.notificationConnection;
 
+                    nc.on('NuevoPedido', function (pedido) {
+                        console.log('🟡 NuevoPedido (shared connection) recibido:', pedido);
+                        if (!pedido) return;
 
+                        // Normalizar id de comercio y verificar destino
+                        const comercioIdRecibido = pedido.comercioId ?? pedido.ComercioId ?? pedido.comercioID ?? pedido.Comercioid;
+                        if (typeof comercioIdRecibido !== 'undefined' && comercioIdRecibido !== comercioId) return;
 
+                        const pedidoId = pedido.pedidoId ?? pedido.PedidoId ?? '(sin id)';
+                        const total = pedido.total ?? pedido.Total ?? '(sin total)';
+                        const usuarioFinalId = pedido.usuarioFinalId ?? pedido.UsuarioFinalId ?? '(sin usuario)';
+                        const productoNombre = pedido.productoNombre ?? pedido.ProductoNombre ?? '(sin nombre)';
+                        const productoCategoria = pedido.productoCategoria ?? pedido.ProductoCategoria ?? '(sin categoría)';
 
+                        // Si el payload no trae estado, asumimos 'en preparación' por defecto
+                        const estadoRecibido = pedido.estado ?? pedido.Estado ?? estados[0];
 
-            Expand All
+                        // Construir options a partir del array de estados, marcando el seleccionado
+                        const optionsHtml = estados.map(e =>
+                            `<option value="${e}" ${e === estadoRecibido ? 'selected' : ''}>${e}</option>`
+                        ).join('');
 
-        @@ -194,32 +197,33 @@
+                        const tbody = document.querySelector('.tabla-pedidos tbody');
+                        const tr = document.createElement('tr');
+                        tr.classList.add('highlight');
 
-            connection.start()
-                .then(() => {
-                    console.log("✅ Conectado al Hub del comercio:", comercioId);
-                    connection.invoke("Register", comercioId);
-                })
-                .catch(err => console.error("❌ Error al conectar:", err));
-                    conn.on('NuevoPedido', function (pedido) {
-            if (!pedido) return;
+                        tr.innerHTML = `
+                            <td>$${total}</td>
+                            <td>
+                                <select class="form-select pedido-estado" data-pedido-id="${pedidoId}">
+                                    ${optionsHtml}
+                                </select>
+                            </td>
+                            <td>${usuarioFinalId}</td>
+                            <td>${productoNombre}</td>
+                            <td>${productoCategoria}</td>
+                        `;
 
-            // Normalizar campos (soporta PascalCase y camelCase)
-            const comercioIdRecibido = pedido.comercioId ?? pedido.ComercioId ?? pedido.Comercioid ?? pedido.comercioID;
-            if (comercioIdRecibido !== comercioId) return;
+                        tbody.prepend(tr);
+                        setTimeout(() => tr.classList.remove('highlight'), 2000);
+                        actualizarEstadisticas();
+                    });
 
-            const pedidoId = pedido.pedidoId ?? pedido.PedidoId;
-            const total = pedido.total ?? pedido.Total ?? '(sin total)';
-            const usuarioFinalId = pedido.usuarioFinalId ?? pedido.UsuarioFinalId ?? '(sin usuario)';
-            const productoNombre = pedido.productoNombre ?? pedido.ProductoNombre ?? '(sin nombre)';
-            const productoCategoria = pedido.productoCategoria ?? pedido.ProductoCategoria ?? '(sin categoría)';
-            const estado = pedido.estado ?? pedido.Estado ?? '';
+                } catch (ex) {
+                    console.error('Error inicializando handlers de NuevoPedido:', ex);
+                }
+            })();
 
-            const tbody = document.querySelector('.tabla-pedidos tbody');
-            const tr = document.createElement('tr');
-            tr.classList.add('highlight');
-
-            tr.innerHTML = `
-                <td>$${total}</td>
-                <td>
-                    <select class="form-select pedido-estado" data-pedido-id="${pedidoId}">
-                        <option value="${estado}" selected>${estado}</option>
-                    </select>
-                </td>
-                <td>${usuarioFinalId}</td>
-                <td>${productoNombre}</td>
-                <td>${productoCategoria}</td>
-            `;
-
-            tbody.prepend(tr);
-            setTimeout(() => tr.classList.remove('highlight'), 2000);
-            actualizarEstadisticas();
-        });
-
-
-
-
-
-
-
-
-              Expand Down
-
-
-
-            // === Actualiza estado de pedido manualmente ===
             document.addEventListener('change', (e) => {
                 if (e.target.classList.contains('pedido-estado')) {
                     const pedidoId = e.target.getAttribute('data-pedido-id');
@@ -261,7 +255,7 @@
                     });
                 }
             });
-            // === Actualiza las tarjetas ===
+
             function actualizarEstadisticas() {
                 const total = document.querySelectorAll('.tabla-pedidos tbody tr').length;
                 const enProceso = [...document.querySelectorAll('.pedido-estado')].filter(s => s.value !== "finalizada").length;

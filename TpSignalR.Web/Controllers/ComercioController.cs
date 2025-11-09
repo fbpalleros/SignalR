@@ -57,7 +57,7 @@ namespace TpSignalR.Web.Controllers
                 .ContinueWith(t => { if (t.IsFaulted) System.Console.WriteLine($"❌ Notify error user-{userId}: {t.Exception?.GetBaseException().Message}"); }, System.Threading.Tasks.TaskContinuationOptions.OnlyOnFaulted);
         }
 
-        [HttpPost]
+[HttpPost]
 [ValidateAntiForgeryToken]
 public async Task<IActionResult> ActualizarEstadoPedido([FromBody] EstadoUpdateModel model)
 {

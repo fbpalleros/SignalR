@@ -289,69 +289,96 @@
             window.__motoMarkerRef = motoMarker;
         }
 
-        // Conexión SignalR: usar el mismo hub que usa ComercioController (NotificationHub)
-        const connection = new signalR.HubConnectionBuilder()
-            .withUrl("/notificationHub")
-            .build();
+        // Use shared connection created in layout if present
+        function ensureConnection() {
+            return new Promise(async (resolve, reject) => {
+                try {
+                    if (window.notificationConnection) {
+                        resolve(window.notificationConnection);
+                        return;
+                    }
 
-        // Evento que el servidor envía: PedidoEnCamino
-        connection.on("PedidoEnCamino", (payload) => {
+                    // If there's no global connection (e.g. layout not loaded), create a temporary one
+                    const tempConn = new signalR.HubConnectionBuilder().withUrl('/notificationHub').withAutomaticReconnect().build();
+                    await tempConn.start();
+                    // Try to register with session uid if available
+                    if (window.notificationUid && window.notificationUid > 0) {
+                        await tempConn.invoke('Register', window.notificationUid).catch(()=>{});
+                    }
+                    // expose so other pages could reuse if needed
+                    window.notificationConnection = tempConn;
+                    resolve(tempConn);
+                } catch (err) {
+                    reject(err);
+                }
+            });
+        }
+
+        (async function initSignalR(){
+            let connection;
             try {
-                console.log("Señal PedidoEnCamino recibida:", payload);
-                estadoBadge.innerText = payload?.Estado ?? "en camino";
-                if (noMapInfo) noMapInfo.classList.add('hidden');
-                mapWrapper.classList.remove('hidden');
+                connection = await ensureConnection();
 
-                startMapWithData({
-                    ComercioLat: payload?.ComercioLat ?? payload?.ComercioLatitude ?? null,
-                    ComercioLng: payload?.ComercioLng ?? payload?.ComercioLongitude ?? null,
-                    UsuarioLat: payload?.UsuarioLat ?? null,
-                    UsuarioLng: payload?.UsuarioLng ?? null,
-                    PedidoId: payload?.PedidoId ?? null
+                // Attach handlers (idempotent as multiple .on calls with same name will stack; could guard if needed)
+                connection.on("PedidoEnCamino", (payload) => {
+                    try {
+                        console.log("Señal PedidoEnCamino recibida:", payload);
+
+                        // Update estado badge
+                        estadoBadge.innerText = payload?.Estado ?? payload?.estado ?? "en camino";
+
+                        if (noMapInfo) noMapInfo.classList.add('hidden');
+                        if (mapWrapper) mapWrapper.classList.remove('hidden');
+
+                        startMapWithData({
+                            ComercioLat: payload?.ComercioLat ?? payload?.ComercioLatitude ?? null,
+                            ComercioLng: payload?.ComercioLng ?? payload?.ComercioLongitude ?? null,
+                            UsuarioLat: payload?.UsuarioLat ?? null,
+                            UsuarioLng: payload?.UsuarioLng ?? null,
+                            PedidoId: payload?.PedidoId ?? null
+                        });
+
+                        // Join pedido group so subsequent real-time ubicacion updates arrive
+                        const pid = payload?.PedidoId ?? payload?.pedidoId;
+                        if (pid) {
+                            connection.invoke("UnirseAPedido", pid).catch(err => console.error('UnirseAPedido error', err));
+                        }
+                    } catch (err) {
+                        console.error("Error manejando PedidoEnCamino:", err);
+                    }
                 });
 
-                if (payload?.PedidoId) {
-                    connection.invoke("UnirseAPedido", payload.PedidoId).catch(err => console.error(err));
-                }
-            } catch (err) {
-                console.error("Error manejando PedidoEnCamino:", err);
-            }
-        });
+                connection.on("RecibirUbicacion", (lat, lng) => {
+                    try {
+                        const latN = parseFloat(lat);
+                        const lngN = parseFloat(lng);
+                        const mm = window.__motoMarkerRef;
+                        if (mm && !isNaN(latN) && !isNaN(lngN)) {
+                            mm.setLatLng([latN, lngN]);
+                            document.getElementById("estado").innerText = `📡 Actualizado: repartidor en (${latN.toFixed(5)}, ${lngN.toFixed(5)})`;
+                        }
+                    } catch (err) {
+                        console.error("Error procesando ubicación:", err);
+                    }
+                });
 
-        // ubicación en tiempo real
-        connection.on("RecibirUbicacion", (lat, lng) => {
-            try {
-                const latN = parseFloat(lat);
-                const lngN = parseFloat(lng);
-                const mm = window.__motoMarkerRef;
-                if (mm && !isNaN(latN) && !isNaN(lngN)) {
-                    mm.setLatLng([latN, lngN]);
-                    document.getElementById("estado").innerText = `📡 Actualizado: repartidor en (${latN.toFixed(5)}, ${lngN.toFixed(5)})`;
-                }
-            } catch (err) {
-                console.error("Error procesando ubicación:", err);
-            }
-        });
-
-        connection.start()
-            .then(() => {
-                console.log("✅ Conectado a SignalR (cliente)");
-
-                // Unirse al grupo del pedido si ya conocemos el pedidoId en el dataset
+                // If this page already knows its pedidoId, join its pedido group so it receives events
                 const pedidoIdOnLoad = mapEl?.dataset?.pedidoId;
                 if (pedidoIdOnLoad) {
-                    connection.invoke("UnirseAPedido", pedidoIdOnLoad)
-                        .then(() => console.log("Unido al grupo pedido-" + pedidoIdOnLoad))
-                        .catch(err => console.error("Error unirse a pedido:", err));
+                    connection.invoke('UnirseAPedido', pedidoIdOnLoad).then(() => console.log('Unido al grupo pedido-' + pedidoIdOnLoad)).catch(err => console.error('Error unirse a pedido:', err));
                 }
 
-                // Si la página ya estaba en estado "en camino", inicializamos el mapa
+                // If the page was already in estado 'en camino' at render time, initialize map
                 if ("@estadoNormalized" === "en camino") {
                     startMapWithData(null);
                     if (mapWrapper) mapWrapper.classList.remove('hidden');
                     if (noMapInfo) noMapInfo.classList.add('hidden');
                 }
-            })
-            .catch(err => console.error("❌ Error al conectar con SignalR:", err));
+
+            } catch (err) {
+                console.error('SignalR init failed:', err);
+            }
+        })();
+
     })();
 </script>
