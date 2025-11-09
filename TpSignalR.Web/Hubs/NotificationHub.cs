@@ -28,7 +28,47 @@ namespace TpSignalR.Web.Hubs
             NotificationConnectionStore.Remove(Context.ConnectionId);
         }
 
+        /// <summary>
+        /// Permite a un cliente unirse a un grupo específico para un pedido (por ejemplo "pedido-123").
+        /// El frontend invoca connection.invoke('UnirseAPedido', pedidoId)
+        /// </summary>
+        /// <param name="pedidoId"></param>
+        public async Task UnirseAPedido(int pedidoId)
+        {
+            try
+            {
+                var groupName = GetPedidoGroupName(pedidoId);
+                await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
+                // opcional: log
+                System.Console.WriteLine($"[NotificationHub] Conexión {Context.ConnectionId} unida al grupo {groupName}");
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine($"[NotificationHub] Error UnirseAPedido: {ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Permite a un cliente salir del grupo pedido
+        /// </summary>
+        public async Task SalirDelPedido(int pedidoId)
+        {
+            try
+            {
+                var groupName = GetPedidoGroupName(pedidoId);
+                await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
+                System.Console.WriteLine($"[NotificationHub] Conexión {Context.ConnectionId} removida del grupo {groupName}");
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine($"[NotificationHub] Error SalirDelPedido: {ex.Message}");
+                throw;
+            }
+        }
+
         private string GetGroupName(int userId) => $"user-{userId}";
+        private string GetPedidoGroupName(int pedidoId) => $"pedido-{pedidoId}";
 
         public override async Task OnDisconnectedAsync(Exception exception)
         {

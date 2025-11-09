@@ -4,15 +4,12 @@
     var pedidos = ViewBag.Pedidos as List<ComercioPedidoViewModel> ?? new List<ComercioPedidoViewModel>();
     var estados = new[] { "en preparación", "buscando repartidor", "en camino", "finalizada" };
 }
-
 @Html.AntiForgeryToken()
-
 <div class="comercio-container">
     <div class="comercio-header">
         <h1>📦 Panel en Tiempo Real del Comercio</h1>
         <p>Visualizá tus pedidos y actualizá sus estados sin recargar la página</p>
     </div>
-
     <!-- === TARJETAS DE ESTADÍSTICAS === -->
     <div class="estadisticas-section">
         <div class="estadistica-card">
@@ -28,7 +25,6 @@
             <p id="pedidosFinalizados">@pedidos.Count(p => p.Estado == "finalizada")</p>
         </div>
     </div>
-
     <!-- === TABLA DE PEDIDOS === -->
     <div class="tabla-section">
         <h2>🧾 Pedidos Recientes</h2>
@@ -64,7 +60,6 @@
         </table>
     </div>
 </div>
-
 <!-- === ESTILOS === -->
 <style>
     body {
@@ -176,91 +171,98 @@
         transition: background-color 0.5s ease-in-out;
     }
 </style>
-
 <!-- === SCRIPTS DE SIGNALR === -->
 @section Scripts {
     <script>
-        // comercioId used only to filter UI updates for this comercio panel, it MUST NOT be used to register SignalR groups
-        const comercioId = 1;
+            const comercioId = 1;
+            const estados = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(estados));
 
-        // Use the global notification connection created in the layout
-        function waitForNotificationConnection(timeoutMs = 3000) {
-            return new Promise((resolve, reject) => {
-                const start = Date.now();
-                const check = () => {
-                    if (window.notificationConnection && window.notificationConnection.state === signalR.HubConnectionState.Connected) {
-                        return resolve(window.notificationConnection);
+            (function(){
+                try {
+                    if (!window.notificationConnection) {
+                        console.warn('Global notificationConnection no está disponible, creando uno temporal...');
+                        window.notificationConnection = new signalR.HubConnectionBuilder().withUrl('/notificationHub').build();
+                        window.notificationConnection.start().then(function(){
+                            window.notificationConnection.invoke('Register', comercioId).catch(function(err){ console.error('Register failed', err); });
+                        }).catch(function(err){ console.error('Startup of temp connection failed', err); });
+                    } else {
+                        window.notificationConnection.invoke('Register', comercioId).catch(function(err){ console.error('Register failed', err); });
                     }
-                    if (Date.now() - start > timeoutMs) return reject(new Error('notificationConnection not ready'));
-                    setTimeout(check, 100);
-                };
-                check();
+
+                    const nc = window.notificationConnection;
+
+                    nc.on('NuevoPedido', function (pedido) {
+                        console.log('🟡 NuevoPedido (shared connection) recibido:', pedido);
+                        if (!pedido) return;
+
+                        // Normalizar id de comercio y verificar destino
+                        const comercioIdRecibido = pedido.comercioId ?? pedido.ComercioId ?? pedido.comercioID ?? pedido.Comercioid;
+                        if (typeof comercioIdRecibido !== 'undefined' && comercioIdRecibido !== comercioId) return;
+
+                        const pedidoId = pedido.pedidoId ?? pedido.PedidoId ?? '(sin id)';
+                        const total = pedido.total ?? pedido.Total ?? '(sin total)';
+                        const usuarioFinalId = pedido.usuarioFinalId ?? pedido.UsuarioFinalId ?? '(sin usuario)';
+                        const productoNombre = pedido.productoNombre ?? pedido.ProductoNombre ?? '(sin nombre)';
+                        const productoCategoria = pedido.productoCategoria ?? pedido.ProductoCategoria ?? '(sin categoría)';
+
+                        // Si el payload no trae estado, asumimos 'en preparación' por defecto
+                        const estadoRecibido = pedido.estado ?? pedido.Estado ?? estados[0];
+
+                        // Construir options a partir del array de estados, marcando el seleccionado
+                        const optionsHtml = estados.map(e =>
+                            `<option value="${e}" ${e === estadoRecibido ? 'selected' : ''}>${e}</option>`
+                        ).join('');
+
+                        const tbody = document.querySelector('.tabla-pedidos tbody');
+                        const tr = document.createElement('tr');
+                        tr.classList.add('highlight');
+
+                        tr.innerHTML = `
+                            <td>$${total}</td>
+                            <td>
+                                <select class="form-select pedido-estado" data-pedido-id="${pedidoId}">
+                                    ${optionsHtml}
+                                </select>
+                            </td>
+                            <td>${usuarioFinalId}</td>
+                            <td>${productoNombre}</td>
+                            <td>${productoCategoria}</td>
+                        `;
+
+                        tbody.prepend(tr);
+                        setTimeout(() => tr.classList.remove('highlight'), 2000);
+                        actualizarEstadisticas();
+                    });
+
+                } catch (ex) {
+                    console.error('Error inicializando handlers de NuevoPedido:', ex);
+                }
+            })();
+
+            document.addEventListener('change', (e) => {
+                if (e.target.classList.contains('pedido-estado')) {
+                    const pedidoId = e.target.getAttribute('data-pedido-id');
+                    const nuevoEstado = e.target.value;
+                    fetch('/Comercio/ActualizarEstadoPedido', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                        },
+                        body: JSON.stringify({ pedidoId: parseInt(pedidoId), nuevoEstado })
+                    }).then(res => {
+                        if (res.ok) actualizarEstadisticas();
+                    });
+                }
             });
-        }
 
-        // Register handler for NuevoPedido on the global connection
-        waitForNotificationConnection().then(conn => {
-            try {
-                // Ensure we don't double-register handler
-                conn.off && conn.off('NuevoPedido');
-            } catch(e) {}
-
-            conn.on('NuevoPedido', function (pedido) {
-                // pedido comes from server; keep the UI filtered by comercioId
-                if (!pedido) return;
-                if (pedido.comercioId !== comercioId) return;
-
-                const tbody = document.querySelector('.tabla-pedidos tbody');
-                const tr = document.createElement('tr');
-                tr.classList.add('highlight');
-
-                tr.innerHTML = `
-                    <td>$${pedido.total}</td>
-                    <td>
-                        <select class="form-select pedido-estado" data-pedido-id="${pedido.pedidoId}">
-                            <option value="${pedido.estado}" selected>${pedido.estado}</option>
-                        </select>
-                    </td>
-                    <td>${pedido.usuarioFinalId}</td>
-                    <td>${pedido.productoNombre ?? '(sin nombre)'}</td>
-                    <td>${pedido.productoCategoria ?? '(sin categoría)'}</td>
-                `;
-
-                tbody.prepend(tr);
-                setTimeout(() => tr.classList.remove('highlight'), 2000);
-                actualizarEstadisticas();
-            });
-
-        }).catch(err => console.warn('Notification connection not ready in ComercioLobby:', err.message));
-
-        // === Actualiza estado de pedido manualmente ===
-        document.addEventListener('change', (e) => {
-            if (e.target.classList.contains('pedido-estado')) {
-                const pedidoId = e.target.getAttribute('data-pedido-id');
-                const nuevoEstado = e.target.value;
-
-                fetch('/Comercio/ActualizarEstadoPedido', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
-                    },
-                    body: JSON.stringify({ pedidoId: parseInt(pedidoId), nuevoEstado })
-                }).then(res => {
-                    if (res.ok) actualizarEstadisticas();
-                });
+            function actualizarEstadisticas() {
+                const total = document.querySelectorAll('.tabla-pedidos tbody tr').length;
+                const enProceso = [...document.querySelectorAll('.pedido-estado')].filter(s => s.value !== "finalizada").length;
+                const finalizados = total - enProceso;
+                document.getElementById("totalPedidos").innerText = total;
+                document.getElementById("pedidosActivos").innerText = enProceso;
+                document.getElementById("pedidosFinalizados").innerText = finalizados;
             }
-        });
-
-        // === Actualiza las tarjetas ===
-        function actualizarEstadisticas() {
-            const total = document.querySelectorAll('.tabla-pedidos tbody tr').length;
-            const enProceso = [...document.querySelectorAll('.pedido-estado')].filter(s => s.value !== "finalizada").length;
-            const finalizados = total - enProceso;
-
-            document.getElementById("totalPedidos").innerText = total;
-            document.getElementById("pedidosActivos").innerText = enProceso;
-            document.getElementById("pedidosFinalizados").innerText = finalizados;
-        }
     </script>
 }

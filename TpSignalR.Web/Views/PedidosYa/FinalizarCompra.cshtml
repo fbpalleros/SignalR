@@ -1,5 +1,384 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model dynamic
 @{
+    ViewData["Title"] = "Seguimiento del Pedido";
+    var estadoNormalized = (Model?.Estado ?? "").ToString().Trim().ToLowerInvariant();
+    var estaEnCamino = estadoNormalized == "en camino";
 }
+
+<style>
+    .seguimiento-container {
+        display: grid;
+        grid-template-columns: 380px 1fr;
+        gap: 20px;
+        padding: 20px;
+        font-family: 'Segoe UI', sans-serif;
+        color: #fff;
+        background: linear-gradient(180deg,#0f0f0f 0%, #070707 100%);
+        min-height: 100vh;
+    }
+
+    .producto-panel {
+        background: #1a1a1a;
+        border-radius: 12px;
+        padding: 18px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+    }
+
+    .producto-imagen {
+        width: 100%;
+        height: 220px;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-bottom: 12px;
+    }
+
+    .producto-nombre {
+        font-size: 1.25rem;
+        color: #00bfa6;
+        margin: 0 0 6px 0;
+    }
+
+    .producto-categoria {
+        color: #cfcfcf;
+        font-size: 0.95rem;
+        margin-bottom: 8px;
+    }
+
+    .producto-precio {
+        color: #00ffcc;
+        font-weight: 700;
+        font-size: 1.15rem;
+        margin-bottom: 12px;
+    }
+
+    .detalles-meta {
+        color: #d1d1d1;
+        font-size: 0.95rem;
+        margin-top: 10px;
+    }
+
+    .map-panel {
+        background: transparent;
+    }
+
+    #map {
+        width: 100%;
+        height: 560px;
+        border-radius: 10px;
+        box-shadow: 0 6px 30px rgba(0,0,0,0.6);
+        border: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .hidden { display:none; }
+    .estado-badge {
+        display: inline-block;
+        margin-top: 10px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(0,191,166,0.12);
+        color: #00bfa6;
+        font-weight: 600;
+    }
+
+    .meta-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        margin-top: 8px;
+    }
+
+    .meta-item {
+        color: #cfcfcf;
+        font-size: 0.9rem;
+    }
+
+    .estado-info {
+        padding: 24px;
+        background: rgba(255,255,255,0.02);
+        border-radius: 10px;
+        text-align: center;
+        color: #cfcfcf;
+    }
+</style>
+
+<div class="seguimiento-container">
+    <aside class="producto-panel">
+        <img class="producto-imagen" src="@(Model?.Producto?.ImagenUrl ?? "https://images.unsplash.com/photo-1550547660-d9450f859349?w=800")" alt="@(Model?.Producto?.Nombre ?? "Producto")" />
+        <h3 class="producto-nombre">@(Model?.Producto?.Nombre ?? "Producto desconocido")</h3>
+        <div class="producto-categoria">@(Model?.Producto?.Categoria ?? "Categoría")</div>
+        <div class="producto-precio">@(Model?.Producto?.Precio != null ? string.Format(System.Globalization.CultureInfo.CurrentCulture, "{0:C0}", Model.Producto.Precio) : "—")</div>
+
+        <div class="detalles-meta">
+            <div class="meta-row">
+                <div class="meta-item">Pedido: <strong id="pedido-id-label">@(Model?.PedidoId ?? "—")</strong></div>
+                <div class="meta-item">Total: <strong>@(Model?.Total != null ? string.Format(System.Globalization.CultureInfo.CurrentCulture, "{0:C0}", Model.Total) : "—")</strong></div>
+            </div>
+
+            <div class="meta-row">
+                <div class="meta-item">Estado: <span id="estado-badge" class="estado-badge">@(Model?.Estado ?? "pendiente")</span></div>
+                <div class="meta-item">Usuario: <strong>@(Model?.UsuarioNombre ?? "Cliente")</strong></div>
+            </div>
+
+            <hr style="border-color: rgba(255,255,255,0.04); margin:12px 0;" />
+
+            <div>
+                <div class="meta-item"><strong>Comercio:</strong> @(Model?.ComercioNombre ?? "Comercio")</div>
+                <div class="meta-item">Dirección: @(Model?.ComercioDireccion ?? "No disponible")</div>
+                <div class="meta-item">Lat: <span id="comercio-lat-label">@(Model?.ComercioLat?.ToString() ?? "—")</span> , Lng: <span id="comercio-lng-label">@(Model?.ComercioLng?.ToString() ?? "—")</span></div>
+            </div>
+        </div>
+    </aside>
+
+    <section class="map-panel">
+        <!-- Map container always present but hidden cuando no está "en camino" -->
+        <div id="map-wrapper" class="@(estaEnCamino ? "" : "hidden")">
+            <div id="map"
+                 data-comercio-lat="@(Model?.ComercioLat ?? "")"
+                 data-comercio-lng="@(Model?.ComercioLng ?? "")"
+                 data-usuario-lat="@(Model?.UsuarioLat ?? "")"
+                 data-usuario-lng="@(Model?.UsuarioLng ?? "")"
+                 data-pedido-id="@(Model?.PedidoId ?? "")"
+                 data-estado="@(Model?.Estado ?? "")"></div>
+
+            <p id="estado" style="margin-top:10px;color:#cfcfcf;">Esperando ubicación...</p>
+        </div>
+
+        @if (!estaEnCamino)
+        {
+            <div id="no-map-info" class="estado-info">
+                <h3>El pedido no está en camino</h3>
+                <p>Estado actual: <strong>@(Model?.Estado ?? "—")</strong></p>
+                <p>El mapa y la simulación se activarán cuando el pedido pase a <em>en camino</em>.</p>
+            </div>
+        }
+    </section>
+</div>
+
+<!-- Recursos (se cargan siempre para poder iniciar el mapa si llega la señal) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+
+<script>
+    (function () {
+        const mapWrapper = document.getElementById('map-wrapper');
+        const noMapInfo = document.getElementById('no-map-info');
+        const mapEl = document.getElementById('map');
+        const estadoBadge = document.getElementById('estado-badge');
+        const comercioLatLabel = document.getElementById('comercio-lat-label');
+        const comercioLngLabel = document.getElementById('comercio-lng-label');
+        const pedidoIdLabel = document.getElementById('pedido-id-label');
+
+        let mapInitialized = false;
+        let motoMarker = null;
+        let polyline = null;
+        let ruta1Length = 0;
+
+        function parseNumber(v) {
+            const n = parseFloat(v);
+            return Number.isFinite(n) ? n : null;
+        }
+
+        function startMapWithData(data) {
+            if (mapInitialized) return;
+            mapInitialized = true;
+
+            // Actualizar labels con datos del payload si vienen
+            if (data) {
+                if (data.ComercioLat != null) comercioLatLabel.innerText = data.ComercioLat;
+                if (data.ComercioLng != null) comercioLngLabel.innerText = data.ComercioLng;
+                if (data.PedidoId != null) pedidoIdLabel.innerText = data.PedidoId;
+                // fijar atributos dataset para referencia
+                if (data.ComercioLat != null) mapEl.dataset.comercioLat = data.ComercioLat;
+                if (data.ComercioLng != null) mapEl.dataset.comercioLng = data.ComercioLng;
+                if (data.UsuarioLat != null) mapEl.dataset.usuarioLat = data.UsuarioLat;
+                if (data.UsuarioLng != null) mapEl.dataset.usuarioLng = data.UsuarioLng;
+            }
+
+            // leer coords (OSRM usa [lng,lat], Leaflet [lat,lng])
+            const comercioLat = parseNumber(mapEl.dataset.comercioLat);
+            const comercioLng = parseNumber(mapEl.dataset.comercioLng);
+            const usuarioLat = parseNumber(mapEl.dataset.usuarioLat);
+            const usuarioLng = parseNumber(mapEl.dataset.usuarioLng);
+            const pedidoId = mapEl.dataset.pedidoId || '';
+
+            const fallback = {
+                repartidor: [-58.5725, -34.6668],
+                comercio: [-58.5681, -34.6679],
+                cliente: [-58.5623, -34.6706]
+            };
+
+            const comercio = (Number.isFinite(comercioLng) && Number.isFinite(comercioLat)) ? [comercioLng, comercioLat] : fallback.comercio;
+            const cliente = (Number.isFinite(usuarioLng) && Number.isFinite(usuarioLat)) ? [usuarioLng, usuarioLat] : fallback.cliente;
+            const repartidor = fallback.repartidor;
+
+            const map = L.map('map').setView([repartidor[1], repartidor[0]], 14);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            const motoIcon = L.icon({
+                iconUrl: 'https://cdn-icons-png.flaticon.com/512/2972/2972185.png',
+                iconSize: [45, 45],
+                iconAnchor: [22, 22]
+            });
+
+            L.circleMarker([repartidor[1], repartidor[0]], {
+                color: "#ffaa00", fillColor: "#ffaa00", fillOpacity: 0.9, radius: 9
+            }).addTo(map).bindPopup("<b>Repartidor (Inicio)</b>");
+
+            L.circleMarker([comercio[1], comercio[0]], {
+                color: "#00ff80", fillColor: "#00ff80", fillOpacity: 0.9, radius: 10
+            }).addTo(map).bindPopup("<b>Comercio</b>");
+
+            L.circleMarker([cliente[1], cliente[0]], {
+                color: "#009dff", fillColor: "#009dff", fillOpacity: 0.9, radius: 10
+            }).addTo(map).bindPopup("<b>Cliente</b>");
+
+            motoMarker = L.marker([repartidor[1], repartidor[0]], { icon: motoIcon }).addTo(map);
+            polyline = L.polyline([], { color: '#00bfa6', weight: 4, opacity: 0.8 }).addTo(map);
+
+            async function obtenerRuta(origen, destino, color) {
+                const url = `https://router.project-osrm.org/route/v1/driving/${origen.join(',')};${destino.join(',')}?overview=full&geometries=geojson`;
+                const res = await fetch(url);
+                const data = await res.json();
+                if (!data || !data.routes || data.routes.length === 0) return null;
+                const coords = data.routes[0].geometry.coordinates.map(([lng, lat]) => [lat, lng]);
+                L.polyline(coords, { color, weight: 5, opacity: 0.8, lineJoin: 'round' }).addTo(map);
+                return coords;
+            }
+
+            Promise.all([
+                obtenerRuta(repartidor, comercio, "#ffa500"),
+                obtenerRuta(comercio, cliente, "#ffea00")
+            ]).then(rutas => {
+                const [ruta1, ruta2] = rutas;
+                if (!ruta1 || !ruta2) {
+                    console.warn("No se pudieron obtener todas las rutas");
+                    return;
+                }
+                ruta1Length = ruta1.length;
+                const rutaCompleta = [...ruta1, ...ruta2];
+                map.fitBounds(L.polyline(rutaCompleta).getBounds(), { padding: [40, 40] });
+
+                const duracion = 25;
+                let i = 0;
+                const intervalo = (duracion * 1000) / rutaCompleta.length;
+
+                const timer = setInterval(() => {
+                    if (i >= rutaCompleta.length) {
+                        clearInterval(timer);
+                        document.getElementById("estado").innerText = "✅ Pedido entregado al cliente";
+                        return;
+                    }
+
+                    const [lat, lng] = rutaCompleta[i];
+                    motoMarker.setLatLng([lat, lng]);
+                    map.panTo([lat, lng], { animate: true, duration: 0.25 });
+
+                    let estado;
+                    if (i < ruta1Length) estado = "🛵 En camino al comercio...";
+                    else estado = "🚚 En camino al cliente...";
+
+                    document.getElementById("estado").innerText = `${estado} (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
+                    i++;
+                }, intervalo);
+            });
+
+            // Exponer función para que actualizaciones SignalR muevan la moto
+            window.__motoMarkerRef = motoMarker;
+        }
+
+        // Use shared connection created in layout if present
+        function ensureConnection() {
+            return new Promise(async (resolve, reject) => {
+                try {
+                    if (window.notificationConnection) {
+                        resolve(window.notificationConnection);
+                        return;
+                    }
+
+                    // If there's no global connection (e.g. layout not loaded), create a temporary one
+                    const tempConn = new signalR.HubConnectionBuilder().withUrl('/notificationHub').withAutomaticReconnect().build();
+                    await tempConn.start();
+                    // Try to register with session uid if available
+                    if (window.notificationUid && window.notificationUid > 0) {
+                        await tempConn.invoke('Register', window.notificationUid).catch(()=>{});
+                    }
+                    // expose so other pages could reuse if needed
+                    window.notificationConnection = tempConn;
+                    resolve(tempConn);
+                } catch (err) {
+                    reject(err);
+                }
+            });
+        }
+
+        (async function initSignalR(){
+            let connection;
+            try {
+                connection = await ensureConnection();
+
+                // Attach handlers (idempotent as multiple .on calls with same name will stack; could guard if needed)
+                connection.on("PedidoEnCamino", (payload) => {
+                    try {
+                        console.log("Señal PedidoEnCamino recibida:", payload);
+
+                        // Update estado badge
+                        estadoBadge.innerText = payload?.Estado ?? payload?.estado ?? "en camino";
+
+                        if (noMapInfo) noMapInfo.classList.add('hidden');
+                        if (mapWrapper) mapWrapper.classList.remove('hidden');
+
+                        startMapWithData({
+                            ComercioLat: payload?.ComercioLat ?? payload?.ComercioLatitude ?? null,
+                            ComercioLng: payload?.ComercioLng ?? payload?.ComercioLongitude ?? null,
+                            UsuarioLat: payload?.UsuarioLat ?? null,
+                            UsuarioLng: payload?.UsuarioLng ?? null,
+                            PedidoId: payload?.PedidoId ?? null
+                        });
+
+                        // Join pedido group so subsequent real-time ubicacion updates arrive
+                        const pid = payload?.PedidoId ?? payload?.pedidoId;
+                        if (pid) {
+                            connection.invoke("UnirseAPedido", pid).catch(err => console.error('UnirseAPedido error', err));
+                        }
+                    } catch (err) {
+                        console.error("Error manejando PedidoEnCamino:", err);
+                    }
+                });
+
+                connection.on("RecibirUbicacion", (lat, lng) => {
+                    try {
+                        const latN = parseFloat(lat);
+                        const lngN = parseFloat(lng);
+                        const mm = window.__motoMarkerRef;
+                        if (mm && !isNaN(latN) && !isNaN(lngN)) {
+                            mm.setLatLng([latN, lngN]);
+                            document.getElementById("estado").innerText = `📡 Actualizado: repartidor en (${latN.toFixed(5)}, ${lngN.toFixed(5)})`;
+                        }
+                    } catch (err) {
+                        console.error("Error procesando ubicación:", err);
+                    }
+                });
+
+                // If this page already knows its pedidoId, join its pedido group so it receives events
+                const pedidoIdOnLoad = mapEl?.dataset?.pedidoId;
+                if (pedidoIdOnLoad) {
+                    connection.invoke('UnirseAPedido', pedidoIdOnLoad).then(() => console.log('Unido al grupo pedido-' + pedidoIdOnLoad)).catch(err => console.error('Error unirse a pedido:', err));
+                }
+
+                // If the page was already in estado 'en camino' at render time, initialize map
+                if ("@estadoNormalized" === "en camino") {
+                    startMapWithData(null);
+                    if (mapWrapper) mapWrapper.classList.remove('hidden');
+                    if (noMapInfo) noMapInfo.classList.add('hidden');
+                }
+
+            } catch (err) {
+                console.error('SignalR init failed:', err);
+            }
+        })();
+
+    })();
+</script>
