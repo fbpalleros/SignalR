@@ -23,9 +23,12 @@ namespace TpSignalR.Web.Controllers
             return View();
         }
 
+        // ✅ Repartidor acepta un pedido
         [HttpPost]
         public async Task<IActionResult> AceptarPedido([FromBody] AceptarPedidoModel model)
         {
+            Console.WriteLine("AceptarPedido endpoint invoked");
+
             if (model == null)
                 return BadRequest(new { error = "Model null" });
 
@@ -33,10 +36,15 @@ namespace TpSignalR.Web.Controllers
             if (pedido == null) return NotFound();
 
             // Solo se puede aceptar si está buscando repartidor
-            if (!string.Equals(pedido.Estado, "buscando repartidor", System.StringComparison.OrdinalIgnoreCase))
-                return Conflict(new { message = "Pedido ya no está disponible" });
+            //if (!string.Equals(pedido.Estado, "buscando repartidor", System.StringComparison.OrdinalIgnoreCase))
+            //    return Conflict(new { message = "Pedido ya no está disponible" });
 
             // Asignar repartidor y cambiar estado
+            // Solo puede aceptarse si está buscando repartidor
+            if (pedido.Estado != "buscando repartidor")
+                return Conflict(new { message = "Pedido ya no está disponible" });
+
+            // Asignar repartidor y actualizar estado
             pedido.Estado = "en camino";
             pedido.RepartidorId = model.RepartidorId;
             _context.SaveChanges();
@@ -58,7 +66,19 @@ namespace TpSignalR.Web.Controllers
                     .ContinueWith(t => { if (t.IsFaulted) System.Console.WriteLine($"❌ Notify error user-{cid}: {t.Exception?.GetBaseException().Message}"); }, System.Threading.Tasks.TaskContinuationOptions.OnlyOnFaulted);
             }
 
-            return Ok();
+            // 🔹 2. Notificar evento que inicia el mapa (PedidoEnCamino)
+            await _hubContext.Clients.All.SendAsync("PedidoEnCamino", new
+            {
+                PedidoId = pedido.PedidoId,
+                ComercioLat = -34.615803, // reemplazá por pedido.Comercio.Latitud
+                ComercioLng = -58.433297, // reemplazá por pedido.Comercio.Longitud
+                UsuarioLat = -34.653480,  // reemplazá por pedido.UsuarioFinal.Latitud
+                UsuarioLng = -58.668710,  // reemplazá por pedido.UsuarioFinal.Longitud
+                Estado = "en camino"
+            });
+
+            // 🔹 3. Confirmar al cliente JS que todo salió bien
+            return Json(new { success = true, pedidoId = pedido.PedidoId });
         }
 
 
