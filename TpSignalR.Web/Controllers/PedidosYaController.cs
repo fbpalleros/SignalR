@@ -6,6 +6,7 @@ using System.Linq;
 using TpSignalR.Logica;
 using TpSignalR.Web.Hubs;
 using System.Threading.Tasks;
+using TpSignalR.Web.Models;
 
 namespace TpSignalR.Web.Controllers
 {
@@ -34,9 +35,55 @@ namespace TpSignalR.Web.Controllers
             return View(productos);
         }
 
-        public IActionResult FinalizarCompra()
+
+        public IActionResult FinalizarCompra(int? pedidoId)
         {
-            return View();
+            // Try from query param first
+            int? pid = pedidoId;
+
+            // If not provided, try from TempData (set by solicitarPedido)
+            if (!pid.HasValue && TempData.ContainsKey("PedidoId"))
+            {
+                if (int.TryParse(TempData["PedidoId"]?.ToString(), out var tempPid))
+                {
+                    pid = tempPid;
+                }
+            }
+
+            if (!pid.HasValue)
+            {
+                // No data, return empty view (the view will handle missing model)
+                return View();
+            }
+
+            var dto = _pedidos.ObtenerPedidoPorId(pid.Value);
+            if (dto == null)
+            {
+                return View();
+            }
+
+            var producto = _pedidos.ObtenerProductosPorComercio(dto.ComercioId)
+                .FirstOrDefault(p => p.Id == dto.ProductoId);
+
+            var model = new FinalizarCompraViewModel
+            {
+                PedidoId = dto.PedidoId,
+                Total = dto.Total,
+                Estado = dto.Estado,
+                UsuarioNombre = "Cliente",
+                Producto = new FinalizarCompraViewModel.ProductoViewModel
+                {
+                    Nombre = producto?.Nombre ?? dto.ProductoNombre,
+                    Categoria = producto?.Categoria ?? dto.ProductoCategoria,
+                    Precio = producto?.Precio,
+                    ImagenUrl = null
+                },
+                ComercioNombre = dto.ComercioNombre,
+                ComercioLat = dto.ComercioLat,
+                ComercioLng = dto.ComercioLng
+            };
+
+            return View(model);
         }
 
         public IActionResult VerPedidoEnTiempoReal()
@@ -103,11 +150,17 @@ namespace TpSignalR.Web.Controllers
                     }
 
                     // Cliente: notify only the session user who created the pedido (structured payload)
-                    var clientPayload = new { role = "cliente", title = "Pedido", message = $"Su pedido \"{productName}\" esta en preparacion" };
+                    var clientPayload = new { role = "cliente", title = "Pedido", message = $"Su pedido \"{productName}\" esta en preparacion", PedidoId = pedido.PedidoId };
                     _ = _hubContext.Clients.Group($"user-{sessionUserId}").SendAsync("Notify", clientPayload)
                         .ContinueWith(t => { if (t.IsFaulted) System.Console.WriteLine($"❌ Notify error user-{sessionUserId}: {t.Exception?.GetBaseException().Message}"); }, System.Threading.Tasks.TaskContinuationOptions.OnlyOnFaulted);
 
                     System.Console.WriteLine($"✅ Notificaciones de creación enviadas");
+
+                    // Store pedidoId in TempData so subsequent redirect or GET can read it
+                    TempData["PedidoId"] = pedido.PedidoId;
+
+                    // Return the created pedido id so client can redirect with it
+                    return Ok(new { success = true, pedidoId = pedido.PedidoId });
                 }
             }
             catch (System.Exception ex)
@@ -115,8 +168,14 @@ namespace TpSignalR.Web.Controllers
                 System.Console.WriteLine($"❌ Error enviando notificación SignalR: {ex.Message}");
             }
 
-            // ✅ en vez de redirigir, devolvemos una respuesta 200 (sin refrescar la vista)
-            return Ok(new { success = true, message = "Pedido enviado correctamente" });
+            // Fallback
+            if (pedido != null)
+            {
+                TempData["PedidoId"] = pedido.PedidoId;
+                return Ok(new { success = true, pedidoId = pedido.PedidoId });
+            }
+
+            return Ok(new { success = false, pedidoId = (int?)null });
         }
 
 
