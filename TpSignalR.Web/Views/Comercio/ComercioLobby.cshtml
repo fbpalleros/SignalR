@@ -239,19 +239,56 @@
                 }
             })();
 
+            async function refreshPedidos() {
+                try {
+                    const res = await fetch(`/Comercio/GetPedidosJson?comercioId=${comercioId}`, { credentials: 'same-origin' });
+                    if (!res.ok) return;
+                    const lista = await res.json();
+                    const tbody = document.querySelector('.tabla-pedidos tbody');
+                    tbody.innerHTML = '';
+
+                    lista.forEach(p => {
+                        const optionsHtml = estados.map(e => `<option value="${e}" ${e === p.estado ? 'selected' : ''}>${e}</option>`).join('');
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>$${p.total}</td>
+                            <td>
+                                <select class="form-select pedido-estado" data-pedido-id="${p.pedidoId}">
+                                    ${optionsHtml}
+                                </select>
+                            </td>
+                            <td>${p.usuarioFinalId}</td>
+                            <td>${p.productoNombre}</td>
+                            <td>${p.productoCategoria}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+
+                    actualizarEstadisticas();
+                } catch (err) {
+                    console.error('Error refrescando pedidos:', err);
+                }
+            }
+
             document.addEventListener('change', (e) => {
                 if (e.target.classList.contains('pedido-estado')) {
                     const pedidoId = e.target.getAttribute('data-pedido-id');
                     const nuevoEstado = e.target.value;
                     fetch('/Comercio/ActualizarEstadoPedido', {
                         method: 'POST',
+                        credentials: 'same-origin',
                         headers: {
                             'Content-Type': 'application/json',
                             'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
                         },
                         body: JSON.stringify({ pedidoId: parseInt(pedidoId), nuevoEstado })
-                    }).then(res => {
-                        if (res.ok) actualizarEstadisticas();
+                    }).then(async res => {
+                        if (res.ok) {
+                            // server already sent notifications; refresh full list to reflect DB state
+                            await refreshPedidos();
+                        } else {
+                            console.error('ActualizarEstadoPedido failed', res.status);
+                        }
                     });
                 }
             });

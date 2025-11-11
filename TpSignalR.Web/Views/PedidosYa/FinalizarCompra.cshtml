@@ -1,5 +1,8 @@
 ﻿@model dynamic
+
+
 @{
+    ViewBag.Producto = Model?.Producto;
     ViewData["Title"] = "Seguimiento del Pedido";
     var estadoNormalized = (Model?.Estado ?? "").ToString().Trim().ToLowerInvariant();
     var estaEnCamino = estadoNormalized == "en camino";

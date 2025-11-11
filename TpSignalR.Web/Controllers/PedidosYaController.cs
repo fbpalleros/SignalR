@@ -34,6 +34,7 @@ namespace TpSignalR.Web.Controllers
             return View(productos);
         }
 
+
         public IActionResult FinalizarCompra()
         {
             return View();
