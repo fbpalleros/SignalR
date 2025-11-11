@@ -6,15 +6,13 @@ using TpSignalR.Web.Hubs;
 
 namespace TpSignalR.Web.Controllers
 {
-    public class PromiedosController : Controller
+    public class PromiedosController: Controller
     {
-        private readonly IUsuarioLogica barcosLogica;
         private readonly IPartidoLogica partidoLogica;
         private readonly IHubContext<PromiedosHub> _hubContext;
 
-        public PromiedosController(IUsuarioLogica barcosLogica, IPartidoLogica partidoLogica, IHubContext<PromiedosHub> hubContext)
+        public PromiedosController(IPartidoLogica partidoLogica, IHubContext<PromiedosHub> hubContext)
         {
-            this.barcosLogica = barcosLogica;
             this.partidoLogica = partidoLogica;
             this._hubContext = hubContext;
         }
@@ -187,27 +185,6 @@ namespace TpSignalR.Web.Controllers
         {
             return View();
         }
-
-
-        //[HttpPost]
-        //public IActionResult Promiedos(Barco barco)
-        //{
-
-
-        //    if (ModelState.IsValid)
-        //    {
-        //        barcosLogica.registrarBarco(barco);
-        //        TempData["Mensaje"] = $"El barco {barco.Nombre} fue registrado con un impuesto de {barco.Impuesto:C2}";
-        //        return RedirectToAction("PedidosYa");
-        //    }
-        //    return View(barco);
-        //}
-
-        //public IActionResult PedidosYa()
-        //{
-        //    var barcos = barcosLogica.obtenerTodos();
-        //    return View(barcos);
-        //}
     }
 
     // Request models
