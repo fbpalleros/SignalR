@@ -32,6 +32,9 @@ namespace TpSignalR.Logica
 
         // Obtener pedidos de un comercio con datos de producto (DTO)
         List<ComercioPedidoDto> ObtenerPedidosPorComercio(int comercioId);
+
+        // Obtener un pedido por id
+        ComercioPedidoDto ObtenerPedidoPorId(int pedidoId);
     }
 
 
