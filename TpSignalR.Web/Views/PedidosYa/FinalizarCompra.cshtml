@@ -175,14 +175,20 @@
             <p id="estado" style="margin-top:10px;color:#cfcfcf;">Esperando ubicación...</p>
         </div>
 
-        @if (!estaEnCamino)
-        {
-            <div id="no-map-info" class="estado-info">
+        <div id="no-map-info" class="estado-info @(estaEnCamino ? "hidden" : "")">
+            @if (!estaEnCamino)
+            {
                 <h3>El pedido no está en camino</h3>
                 <p>Estado actual: <strong>@(Model?.Estado ?? "—")</strong></p>
                 <p>El mapa y la simulación se activarán cuando el pedido pase a <em>en camino</em>.</p>
-            </div>
-        }
+            }
+            else
+            {
+                <h3>🛵 El pedido está en camino</h3>
+                <p>Ya podés seguir el recorrido del repartidor en tiempo real.</p>
+            }
+        </div>
+
     </section>
 </div>
 
@@ -348,37 +354,85 @@
 
         (async function initSignalR(){
             let connection;
+
             try {
                 connection = await ensureConnection();
+                    connection.on("PedidoEntregado", (payload) => {
+        console.log("Pedido ENTREGADO recibido:", payload);
+
+        // 1. Cambiar estado de la badge
+        const badge = document.getElementById("estado-badge");
+        if (badge) {
+            badge.innerText = "Entregado";
+            badge.style.background = "rgba(0,255,120,0.18)";
+            badge.style.color = "#00ff88";
+            badge.style.border = "1px solid rgba(0,255,140,0.35)";
+            badge.style.boxShadow = "0 0 12px rgba(0,255,140,0.35)";
+        }
+
+        // 2. Cambiar mensaje central
+        const noMapInfo = document.getElementById("no-map-info");
+        if (noMapInfo) {
+            noMapInfo.classList.remove("hidden");
+            noMapInfo.innerHTML = `
+                <h3>🎉 El pedido fue entregado</h3>
+                <p>¡Gracias por usar la app!</p>
+            `;
+        }
+
+        // 3. Ocultar mapa
+        const mapWrapper = document.getElementById("map-wrapper");
+        if (mapWrapper) {
+            mapWrapper.classList.add("hidden");
+        }
+
+        // 4. Cambiar texto del estado de ubicación si existe
+        const estado = document.getElementById("estado");
+        if (estado) {
+            estado.innerText = "✅ Pedido entregado al cliente";
+        }
+    });
 
                 // Attach handlers (idempotent as multiple .on calls with same name will stack; could guard if needed)
-                connection.on("PedidoEnCamino", (payload) => {
-                    try {
-                        console.log("Señal PedidoEnCamino recibida:", payload);
+                            connection.on("PedidoEnCamino", (payload) => {
+                try {
+                    console.log("Señal PedidoEnCamino recibida:", payload);
 
-                        // Update estado badge
-                        estadoBadge.innerText = payload?.Estado ?? payload?.estado ?? "en camino";
+                    // Update estado badge
+                    estadoBadge.innerText = payload?.Estado ?? payload?.estado ?? "en camino";
 
-                        if (noMapInfo) noMapInfo.classList.add('hidden');
-                        if (mapWrapper) mapWrapper.classList.remove('hidden');
-
-                        startMapWithData({
-                            ComercioLat: payload?.ComercioLat ?? payload?.ComercioLatitude ?? null,
-                            ComercioLng: payload?.ComercioLng ?? payload?.ComercioLongitude ?? null,
-                            UsuarioLat: payload?.UsuarioLat ?? null,
-                            UsuarioLng: payload?.UsuarioLng ?? null,
-                            PedidoId: payload?.PedidoId ?? null
-                        });
-
-                        // Join pedido group so subsequent real-time ubicacion updates arrive
-                        const pid = payload?.PedidoId ?? payload?.pedidoId;
-                        if (pid) {
-                            connection.invoke("UnirseAPedido", pid).catch(err => console.error('UnirseAPedido error', err));
-                        }
-                    } catch (err) {
-                        console.error("Error manejando PedidoEnCamino:", err);
+                    // Actualizar mensaje interno correctamente
+                    if (noMapInfo) {
+                        noMapInfo.innerHTML = `
+                            <h3>🛵 El pedido está en camino</h3>
+                            <p>Ya podés seguir el recorrido del repartidor en tiempo real.</p>
+                        `;
+                        noMapInfo.classList.add('hidden');
                     }
-                });
+
+                    // Mostrar mapa
+                    if (mapWrapper) mapWrapper.classList.remove('hidden');
+
+                    startMapWithData({
+                        ComercioLat: payload?.ComercioLat ?? payload?.ComercioLatitude ?? null,
+                        ComercioLng: payload?.ComercioLng ?? payload?.ComercioLongitude ?? null,
+                        UsuarioLat: payload?.UsuarioLat ?? null,
+                        UsuarioLng: payload?.UsuarioLng ?? null,
+                        PedidoId: payload?.PedidoId ?? null
+                    });
+
+                    // Unirse al grupo
+                    const pid = payload?.PedidoId ?? payload?.pedidoId;
+                    if (pid) {
+                        connection.invoke("UnirseAPedido", pid)
+                            .catch(err => console.error('UnirseAPedido error', err));
+                    }
+
+                } catch (err) {
+                    console.error("Error manejando PedidoEnCamino:", err);
+                }
+            });
+
 
                 connection.on("RecibirUbicacion", (lat, lng) => {
                     try {
@@ -405,6 +459,14 @@
                     startMapWithData(null);
                     if (mapWrapper) mapWrapper.classList.remove('hidden');
                     if (noMapInfo) noMapInfo.classList.add('hidden');
+                        // Actualizar mensaje interno para evitar texto incorrecto
+                    if (noMapInfo) {
+                        noMapInfo.innerHTML = `
+                            <h3>🛵 El pedido está en camino</h3>
+                            <p>Ya podés seguir el recorrido del repartidor en tiempo real.</p>
+                        `;
+                    }
+
                 }
 
             } catch (err) {
@@ -413,4 +475,5 @@
         })();
 
     })();
+
 </script>

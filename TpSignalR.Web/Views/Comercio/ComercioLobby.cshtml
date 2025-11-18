@@ -271,7 +271,7 @@
                             `<option value="${e}" ${e === estadoRecibido ? 'selected' : ''}>${e}</option>`
                         ).join('');
 
-                        const tbody = document.querySelector('.tabla-pedidos tbody');
+                        const tbody = document.querySelector('.tabla tbody');
                         const tr = document.createElement('tr');
                         tr.classList.add('highlight');
 
@@ -302,7 +302,7 @@
                     const res = await fetch(`/Comercio/GetPedidosJson?comercioId=${comercioId}`, { credentials: 'same-origin' });
                     if (!res.ok) return;
                     const lista = await res.json();
-                    const tbody = document.querySelector('.tabla-pedidos tbody');
+                    const tbody = document.querySelector('.tabla tbody');
                     tbody.innerHTML = '';
 
                     lista.forEach(p => {
@@ -352,7 +352,7 @@
             });
 
             function actualizarEstadisticas() {
-                const total = document.querySelectorAll('.tabla-pedidos tbody tr').length;
+                const total = document.querySelectorAll('.tabla tbody tr').length;
                 const enProceso = [...document.querySelectorAll('.pedido-estado')].filter(s => s.value !== "finalizada").length;
                 const finalizados = total - enProceso;
                 document.getElementById("totalPedidos").innerText = total;
