@@ -5,35 +5,38 @@
     var estados = new[] { "en preparación", "buscando repartidor", "en camino", "finalizada" };
 }
 @Html.AntiForgeryToken()
-<div class="comercio-container">
+
+<div class="comercio-wrapper">
     <div class="comercio-header">
-        <h1>📦 Panel en Tiempo Real del Comercio</h1>
-        <p>Visualizá tus pedidos y actualizá sus estados sin recargar la página</p>
+        <h1>📦 Panel del Comercio</h1>
+        <p>Gestioná tus pedidos en tiempo real</p>
     </div>
-    <!-- === TARJETAS DE ESTADÍSTICAS === -->
-    <div class="estadisticas-section">
-        <div class="estadistica-card">
+
+    <!-- === TARJETAS === -->
+    <div class="estadisticas-grid">
+        <div class="stat-card">
             <h3>Pedidos Totales</h3>
             <p id="totalPedidos">@pedidos.Count</p>
         </div>
-        <div class="estadistica-card">
+        <div class="stat-card">
             <h3>Pedidos Activos</h3>
             <p id="pedidosActivos">@pedidos.Count(p => p.Estado != "finalizada")</p>
         </div>
-        <div class="estadistica-card">
+        <div class="stat-card">
             <h3>Pedidos Finalizados</h3>
             <p id="pedidosFinalizados">@pedidos.Count(p => p.Estado == "finalizada")</p>
         </div>
     </div>
-    <!-- === TABLA DE PEDIDOS === -->
-    <div class="tabla-section">
+
+    <!-- === TABLA === -->
+    <div class="tabla-wrapper">
         <h2>🧾 Pedidos Recientes</h2>
-        <table class="tabla-pedidos">
+
+        <table class="tabla neon-table">
             <thead>
                 <tr>
                     <th>Total</th>
                     <th>Estado</th>
-                    <th>Usuario Id</th>
                     <th>Producto</th>
                     <th>Categoría</th>
                 </tr>
@@ -51,7 +54,6 @@
                                 }
                             </select>
                         </td>
-                        <td>@p.UsuarioFinalId</td>
                         <td>@p.ProductoNombre</td>
                         <td>@p.ProductoCategoria</td>
                     </tr>
@@ -60,117 +62,173 @@
         </table>
     </div>
 </div>
-<!-- === ESTILOS === -->
+
+<!-- === ESTILOS IGUALADOS === -->
 <style>
     body {
-        background-color: #0f0f0f;
-        color: #eaeaea;
-        font-family: 'Segoe UI', sans-serif;
+        background: linear-gradient(180deg, #111 0%, #000 100%);
+        color: #fff;
+        font-family: "Poppins", sans-serif;
+        overflow-x: hidden;
     }
 
-    .comercio-container {
+    .comercio-wrapper {
         max-width: 1200px;
         margin: 40px auto;
-        padding: 20px 40px;
-        background-color: #111;
-        border-radius: 12px;
-        box-shadow: 0 0 25px rgba(0, 255, 204, 0.1);
+        padding: 30px;
+        background: rgba(255,255,255,0.03);
+        border-radius: 16px;
+        box-shadow: 0 0 25px rgba(0,255,200,0.08);
+        border: 1px solid rgba(0,255,200,0.05);
+        backdrop-filter: blur(6px);
     }
 
     .comercio-header {
         text-align: center;
-        margin-bottom: 30px;
+        margin-bottom: 35px;
     }
 
         .comercio-header h1 {
-            color: #00bfa6;
-            margin-bottom: 10px;
+            font-size: 32px;
+            color: #00ffc8;
+            text-shadow: 0 0 6px rgba(0,255,200,0.4);
+            margin-bottom: 8px;
         }
 
-    .estadisticas-section {
-        display: flex;
-        flex-wrap: wrap;
+        .comercio-header p {
+            color: #b8b8b8;
+        }
+
+    /* === TARJETAS === */
+
+    .estadisticas-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
         gap: 20px;
-        justify-content: space-around;
         margin-bottom: 40px;
     }
 
-    .estadistica-card {
-        background-color: #1a1a1a;
-        border-radius: 10px;
+    .stat-card {
+        background: #1a1a1a;
         padding: 20px;
+        border-radius: 14px;
         text-align: center;
-        flex: 1;
-        min-width: 200px;
-        transition: transform 0.3s, background 0.3s;
+        box-shadow: 0 0 12px rgba(0, 255, 200, 0.15);
+        border: 1px solid rgba(0,255,200,0.05);
+        transition: transform 0.3s, box-shadow 0.3s;
     }
 
-        .estadistica-card:hover {
-            background-color: #222;
-            transform: translateY(-4px);
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 18px rgba(0,255,200,0.3);
         }
 
-        .estadistica-card h3 {
+        .stat-card h3 {
             font-size: 1rem;
-            color: #ccc;
+            color: #b8b8b8;
             margin-bottom: 10px;
         }
 
-        .estadistica-card p {
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: #00ffcc;
+        .stat-card p {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #00ffc8;
+            text-shadow: 0 0 8px rgba(0,255,200,0.5);
         }
 
-    .tabla-section {
-        background-color: #1a1a1a;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 0 20px rgba(0, 255, 204, 0.05);
+    /* === TABLA === */
+
+    .tabla-wrapper {
+        background: rgba(255,255,255,0.03);
+        padding: 25px;
+        border-radius: 14px;
+        border: 1px solid rgba(0,255,200,0.05);
+        box-shadow: 0 0 20px rgba(0, 255, 200, 0.05);
     }
 
-        .tabla-section h2 {
-            color: #00bfa6;
+        .tabla-wrapper h2 {
+            color: #00ffc8;
             margin-bottom: 20px;
+            text-shadow: 0 0 6px rgba(0,255,200,0.4);
         }
 
-    .tabla-pedidos {
+    .neon-table {
         width: 100%;
         border-collapse: collapse;
+        overflow: hidden;
+        border-radius: 12px;
     }
 
-        .tabla-pedidos th, .tabla-pedidos td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #333;
+        .neon-table th {
+            background: rgba(0,255,200,0.15);
+            color: #00ffd0;
+            padding: 14px;
+            text-shadow: 0 0 4px rgba(0,255,200,0.4);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
         }
 
-        .tabla-pedidos th {
-            background-color: #00bfa6;
-            color: #0f0f0f;
-            font-weight: 600;
+        .neon-table td {
+            padding: 14px;
+            color: #e4e4e4;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
 
-        .tabla-pedidos tr:hover {
-            background-color: #222;
-            transition: 0.3s;
+        .neon-table tbody tr {
+            background: rgba(255,255,255,0.02);
+            transition: 0.25s;
         }
 
-    .form-select {
-        background-color: #1a1a1a;
-        color: #fff;
-        border: 1px solid #333;
-        border-radius: 6px;
-        padding: 6px 10px;
-        font-size: 0.9rem;
+            .neon-table tbody tr:hover {
+                background: rgba(0,255,200,0.05);
+                transform: scale(1.01);
+            }
+
+    /* === SELECT NEON CON ICONO === */
+
+    .form-select,
+    select.pedido-estado {
+        width: 100%;
+        padding: 10px 36px 10px 12px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        background: #0f0f0f;
+        color: #00ffc8;
+        border: 2px solid rgba(0,255,200,0.35);
+        border-radius: 10px;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
         cursor: pointer;
+        /* === icono flecha (Heroicons) === */
+        background-image: url("https://cdn-icons-png.flaticon.com/512/992/992207.png");
+        background-repeat: no-repeat;
+        background-size: 20px;
+        background-position: right 10px center;
+        transition: 0.25s ease;
     }
 
-    .highlight {
-        background-color: rgba(0, 255, 204, 0.1);
-        transition: background-color 0.5s ease-in-out;
-    }
+        .form-select:hover,
+        select.pedido-estado:hover {
+            border-color: #00ffc8;
+            box-shadow: 0 0 12px rgba(0,255,200,0.45);
+        }
+
+        .form-select:focus,
+        select.pedido-estado:focus {
+            outline: none;
+            border-color: #00ffc8;
+            box-shadow: 0 0 15px rgba(0,255,200,0.65);
+        }
+
+        .form-select option,
+        select.pedido-estado option {
+            background: #0f0f0f;
+            color: #00ffc8;
+            padding: 10px;
+        }
+
 </style>
+
 <!-- === SCRIPTS DE SIGNALR === -->
 @section Scripts {
     <script>

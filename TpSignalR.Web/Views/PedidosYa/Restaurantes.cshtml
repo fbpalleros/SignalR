@@ -1,7 +1,4 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@model List<TpSignalR.Entidades.Comercio>
+﻿@model List<TpSignalR.Entidades.Comercio>
 
 @{
     ViewData["Title"] = "Restaurantes";
@@ -15,65 +12,129 @@
         padding: 30px;
     }
 
-    .grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 20px;
+    h1 {
+        text-align: center;
+        margin-bottom: 40px;
+        font-size: 2rem;
+        font-weight: 700;
+        color: #fff;
     }
 
+    /* ===== GRID ===== */
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+        gap: 40px;
+        justify-content: center;
+        padding: 10px;
+    }
+
+    /* ===== CARD ===== */
     .card {
-        background-color: #1a1a1a;
-        padding: 20px;
-        border-radius: 10px;
-        text-align: center;
-        transition: 0.3s;
+        background: rgba(20, 20, 20, 0.72);
+        border-radius: 22px;
+        overflow: hidden;
+        height: 440px;
+        border: 1px solid rgba(255,255,255,0.06);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.55);
+        backdrop-filter: blur(18px);
+        display: flex;
+        flex-direction: column;
+        transition: transform .35s ease, box-shadow .35s ease, border .35s ease;
+        cursor: pointer;
     }
 
         .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 0 15px #00ffcc;
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 18px 36px rgba(0,255,200,0.22), 0 12px 22px rgba(0,0,0,0.70);
+            border-color: rgba(0,255,200,0.45);
         }
 
-        .card h3 {
-            color: #00ffcc;
-            margin-bottom: 10px;
+        .card img {
+            width: 100%;
+            height: 260px;
+            object-fit: cover;
         }
 
-        .card p {
-            color: #ccc;
-            margin: 5px 0;
-        }
+    .card-content {
+        padding: 22px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .card h3 {
+        font-size: 1.45rem;
+        margin: 0 0 6px;
+        color: #fff;
+        text-align: left;
+    }
+
+    .card p {
+        color: #cfcfcf;
+        margin-bottom: 14px;
+        font-size: 0.95rem;
+        text-align: left;
+    }
 
     .btn-ver {
-        display: inline-block;
-        margin-top: 10px;
+        align-self: flex-start;
         background-color: #00bfa6;
         color: #000;
-        padding: 8px 14px;
-        border-radius: 6px;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 700;
         text-decoration: none;
-        font-weight: 600;
+        transition: background-color .3s;
     }
+
+        .btn-ver:hover {
+            background-color: #00e6c3;
+        }
 </style>
+
 
 <h1>🍴 Restaurantes disponibles</h1>
 
 <div class="grid">
     @if (Model != null && Model.Any())
     {
-        @foreach (var r in Model)
+        var imagenes = new List<string>
         {
-            <div class="card">
-                <img src="https://images.unsplash.com/photo-1600891964599-f61ba0e24092?w=800"
-                     alt="@r.Nombre"
-                     style="width:100%;height:200px;object-fit:cover;border-radius:8px;" />
-                <h3>@r.Nombre</h3>
-                <p>@r.Direccion</p>
+        "https://images.unsplash.com/photo-1600891964599-f61ba0e24092?w=1000", /* parrilla */
+        "https://images.unsplash.com/photo-1550547660-d9450f859349?w=1000", /* carne / grill */
+        "https://images.unsplash.com/photo-1551782450-17144c3fa353?w=1000", /* hamburguesas */
+        "https://images.unsplash.com/photo-1542528180-7d95a1ac0f42?w=1000", /* sushi */
+        "https://images.unsplash.com/photo-1546069901-eacef0df6022?w=1000", /* pasta */
+        "https://images.unsplash.com/photo-1617196034796-73d443a0be03?w=1000", /* pizza */
+        "https://images.unsplash.com/photo-1564758866811-385563fd3e9c?w=1000", /* tacos */
+        "https://images.unsplash.com/photo-1600891963933-960c6a82f6ca?w=1000", /* ramen / asiática */
+        "https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=1000", /* café moderno */
+        "https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=1000"  /* brunch / desayuno */
+        };
 
-                @* A fines de la Poc Todos los Comerciones tienen el ID 1 para poder comunicar las señales *@
-                <a href="@Url.Action("ServicioSeleccionado", "PedidosYa", new { comercioId = 1 })" class="btn-ver">
-                    Ver menú
-                </a>
+        int index = 0;
+
+        foreach (var r in Model)
+        {
+            var img = imagenes[index % imagenes.Count];
+            index++;
+
+            <div class="card">
+                <img src="@img" alt="@r.Nombre" />
+
+                <div class="card-content">
+                    <div>
+                        <h3>@r.Nombre</h3>
+                        <p>@r.Direccion</p>
+                    </div>
+
+                    <a href="@Url.Action("ServicioSeleccionado", "PedidosYa", new { comercioId = 1 })"
+                       class="btn-ver">
+                        Ver menú
+                    </a>
+                </div>
             </div>
         }
     }

@@ -1,174 +1,137 @@
 ﻿<body>
-    <!-- CONTENEDOR PRINCIPAL -->
-    <div class="main-container">
-        <h1>Selecciona tu servicio</h1>
+    <!-- ====== CONTENEDOR PRINCIPAL ====== -->
+    <main class="selection-container">
+        <h1 class="selection-title">Selecciona tu servicio</h1>
 
-        <div class="cards">
-            <!-- CARD 1 -->
-            <a class="card" href="/PedidosYa/PYLobby">
-                <img src="~/img/pedidosYa.jpeg" alt="Pedidos Ya">
+        <div class="cards-container">
+
+            <!-- CARD: Pedidos Ya -->
+            <a class="service-card" href="/PedidosYa/PYLobby">
+                <div class="card-image">
+                    <img src="~/img/pedidosYa.jpeg" alt="Pedidos Ya" class="card-img-real">
+                </div>
                 <div class="card-content">
-                    <h2>Pedidos Ya</h2>
-                    <p>Ordena tu comida favorita</p>
+                    <h2 class="card-title">Pedidos Ya</h2>
+                    <p class="card-description">Ordena tu comida favorita</p>
                 </div>
             </a>
 
-            <!-- CARD 2 -->
-            <a class="card" href="/Promiedos/PromiedosLobby">
-                <img src="~/img/promiedos.jpg" alt="Promiedos">
+            <!-- CARD: Promiedos -->
+            <a class="service-card" href="/Promiedos/PromiedosLobby">
+                <div class="card-image">
+                    <img src="~/img/promiedos.jpg" alt="Promiedos" class="card-img-real">
+                </div>
                 <div class="card-content">
-                    <h2>Promiedos</h2>
-                    <p>Resultados y noticias de fútbol</p>
+                    <h2 class="card-title">Promiedos</h2>
+                    <p class="card-description">Resultados y noticias de fútbol</p>
                 </div>
             </a>
+
         </div>
-    </div>
-
-    <style>
-        body {
-            margin: 0;
-            background-color: #0d0d0d;
-            color: #fff;
-            font-family: 'Segoe UI', sans-serif;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* ===== NAVBAR ===== */
-        nav {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background-color: #0a0a0a;
-            padding: 12px 40px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-        }
-
-        .nav-left {
-            display: flex;
-            align-items: center;
-            gap: 32px;
-        }
-
-        .logo {
-            font-weight: 700;
-            font-size: 1.3rem;
-        }
-
-        .nav-links {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-            .nav-links a {
-                color: #e5e5e5;
-                text-decoration: none;
-                font-weight: 500;
-                padding: 6px 12px;
-                border-radius: 6px;
-                transition: background-color 0.3s;
-            }
-
-                .nav-links a:hover,
-                .nav-links a.active {
-                    background-color: #1a1a1a;
-                    color: #fff;
-                }
-
-        .nav-right {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .username {
-            font-size: 0.95rem;
-            color: #ccc;
-        }
-
-        .btn-logout {
-            background-color: transparent;
-            color: #fff;
-            border: 1px solid #444;
-            border-radius: 6px;
-            padding: 6px 12px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-            .btn-logout:hover {
-                background-color: #ff4444;
-                border-color: #ff4444;
-            }
-
-        /* ===== CONTENEDOR PRINCIPAL ===== */
-        .main-container {
-            flex: 1; /* Ocupa todo el espacio restante entre nav y footer */
-            display: flex;
-            flex-direction: column;
-            justify-content: center; /* Centra verticalmente */
-            align-items: center; /* Centra horizontalmente */
-            text-align: center;
-            padding: 40px 20px;
-        }
-
-            .main-container h1 {
-                font-size: 2.3rem;
-                font-weight: 700;
-                margin-bottom: 40px;
-            }
-
-        .cards {
-            display: flex;
-            justify-content: center;
-            align-items: stretch;
-            gap: 40px;
-            flex-wrap: wrap;
-            width: 100%;
-            max-width: 900px;
-        }
-
-        .card {
-            background-color: #1a1a1a;
-            border-radius: 12px;
-            overflow: hidden;
-            flex: 1 1 45%; /* Las dos ocupan el ancho de la pantalla (con margen) */
-            max-width: 420px;
-            cursor: pointer;
-            transition: transform 0.3s, box-shadow 0.3s;
-            display: flex;
-            flex-direction: column;
-        }
-
-            .card:hover {
-                transform: translateY(-6px);
-                box-shadow: 0 8px 16px rgba(0,0,0,0.5);
-            }
-
-            .card img {
-                width: 100%;
-                height: 250px;
-                object-fit: cover;
-            }
-
-        .card-content {
-            padding: 20px;
-            text-align: left;
-            flex-grow: 1;
-        }
-
-            .card-content h2 {
-                font-size: 1.3rem;
-                margin: 0 0 8px 0;
-                color: #fff;
-            }
-
-            .card-content p {
-                color: #bbb;
-                margin: 0;
-                font-size: 0.95rem;
-            }
-    </style>
+    </main>
 </body>
+
+
+<style>
+    /* ====== FONDO GLOBAL ====== */
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: "Poppins", sans-serif;
+        background: radial-gradient(circle at top, #1a1a1a, #0d0d0d);
+        color: #fff;
+    }
+
+    /* ===== SELECTION CONTAINER ===== */
+    .selection-container {
+        min-height: calc(100vh - 130px);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 0 20px;
+    }
+
+    .selection-title {
+        font-size: 2.8rem;
+        font-weight: 800;
+        margin-bottom: 45px;
+        background: linear-gradient(90deg, #00ffd0, #00aaff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: 1px;
+    }
+
+    /* ===== CARDS CONTAINER ===== */
+    .cards-container {
+        display: flex;
+        gap: 45px;
+        justify-content: center;
+        flex-wrap: nowrap;
+        width: 100%;
+        max-width: 1200px;
+    }
+
+    /* ===== SERVICE CARD ===== */
+    .service-card {
+        width: 360px;
+        height: 430px;
+        border-radius: 22px;
+        overflow: hidden;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        background: rgba(20,20,20,0.55);
+        border: 1px solid rgba(255,255,255,0.06);
+        box-shadow: 0 10px 32px rgba(0,0,0,0.75);
+        backdrop-filter: blur(20px);
+        transition: transform .35s ease, box-shadow .35s ease, border .35s ease, filter .35s ease;
+        filter: grayscale(100%) brightness(0.65);
+        text-decoration: none;
+    }
+
+        .service-card:hover {
+            transform: translateY(-12px) scale(1.03);
+            filter: none;
+            border-color: rgba(0,255,200,0.35);
+            box-shadow: 0 18px 38px rgba(0,255,200,0.12), 0 14px 30px rgba(0,0,0,0.8);
+        }
+
+    /* ===== CARD IMAGE ===== */
+    .card-image {
+        height: 280px;
+        background: rgba(255,255,255,0.05);
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .card-img-real {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+
+    /* ===== CARD CONTENT ===== */
+    .card-content {
+        padding: 26px;
+        text-align: left;
+    }
+
+    .card-title {
+        font-size: 1.55rem;
+        font-weight: 700;
+        margin: 0 0 12px;
+        color: #fff;
+    }
+
+    .card-description {
+        font-size: 1.05rem;
+        color: #dcdcdc;
+        margin: 0;
+    }
+</style>

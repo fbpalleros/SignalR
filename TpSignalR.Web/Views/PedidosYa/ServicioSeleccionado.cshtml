@@ -37,50 +37,66 @@
             width: 280px;
         }
 
+    /* ===== GRID ===== */
     .productos-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 24px;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 32px;
+        padding: 10px;
     }
 
+    /* ===== CARD ===== */
     .producto-card {
-        background-color: #1a1a1a;
-        border-radius: 14px;
+        background: rgba(20, 20, 20, 0.72);
+        border-radius: 22px;
         overflow: hidden;
-        transition: transform 0.3s, box-shadow 0.3s;
+        height: 420px;
+        border: 1px solid rgba(255,255,255,0.06);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.55);
+        backdrop-filter: blur(18px);
+        display: flex;
+        flex-direction: column;
+        transition: transform .35s ease, box-shadow .35s ease, border .35s ease;
         cursor: pointer;
     }
 
         .producto-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 0 15px rgba(0, 255, 204, 0.2);
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 18px 36px rgba(0,255,200,0.22), 0 12px 22px rgba(0,0,0,0.70);
+            border-color: rgba(0,255,200,0.45);
         }
 
         .producto-card img {
             width: 100%;
-            height: 160px;
+            height: 240px;
             object-fit: cover;
         }
 
     .producto-info {
-        padding: 14px;
+        padding: 18px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
     }
 
         .producto-info h3 {
-            font-size: 1.1rem;
-            margin-bottom: 8px;
+            font-size: 1.25rem;
+            margin-bottom: 6px;
             color: #fff;
         }
 
         .producto-info p {
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             color: #ccc;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
 
         .producto-info .precio {
             color: #00ffcc;
             font-weight: bold;
+            font-size: 1.1rem;
+            margin-top: 8px;
         }
 
     .btn-volver {
@@ -100,7 +116,24 @@
             background-color: #00bfa6;
             color: #0f0f0f;
         }
+
+    .btn-comprar {
+        margin-top: 10px;
+        padding: 9px 12px;
+        border-radius: 10px;
+        background: #00bfa6;
+        border: none;
+        color: #000;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background .25s;
+    }
+
+        .btn-comprar:hover {
+            background: #00e6c3;
+        }
 </style>
+
 
 <div class="servicio-container">
     <div class="servicio-header">
@@ -111,22 +144,41 @@
     <div class="productos-grid">
         @if (Model != null && Model.Any())
         {
+            var imagenes = new List<string>
+                {
+                "https://images.unsplash.com/photo-1600891964599-f61ba0e24092?w=900", /* pasta */
+                "https://images.unsplash.com/photo-1551782450-17144c3fa353?w=900", /* hamburguesa */
+                "https://images.unsplash.com/photo-1546069901-eacef0df6022?w=900", /* desayuno */
+                "https://images.unsplash.com/photo-1542528180-7d95a1ac0f42?w=900", /* sushi */
+                "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=900", /* tacos */
+                "https://images.unsplash.com/photo-1601312377421-d327d038a150?w=900", /* pizza */
+                "https://images.unsplash.com/photo-1606755962773-d324e0bbf6d6?w=900", /* postres */
+                "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=900"  /* parrilla */
+                };
+
+            int index = 0;
+
             foreach (var producto in Model)
             {
+                var img = imagenes[index % imagenes.Count];
+                index++;
+
                 <div class="producto-card">
-                    <img src="https://images.unsplash.com/photo-1550547660-d9450f859349?w=800" alt="@producto.Nombre">
+                    <img src="@img" alt="@producto.Nombre">
+
                     <div class="producto-info">
-                        <h3>@producto.Nombre</h3>
-                        <p>@producto.Categoria</p>
-                        <p class="precio">@producto.Precio.ToString("C0")</p>
+                        <div>
+                            <h3>@producto.Nombre</h3>
+                            <p>@producto.Categoria</p>
+                            <p class="precio">@producto.Precio.ToString("C0")</p>
+                        </div>
 
                         @Html.AntiForgeryToken()
                         <button type="button"
                                 onclick="enviarPedido(@producto.Id)"
-                                style="margin-top:8px;padding:8px 12px;border-radius:8px;background:#00bfa6;border:none;color:#000;font-weight:600;">
+                                class="btn-comprar">
                             Comprar
                         </button>
-
                     </div>
                 </div>
             }
