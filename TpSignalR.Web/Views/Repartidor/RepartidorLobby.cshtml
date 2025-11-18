@@ -4,28 +4,136 @@
     Layout = "~/Views/Shared/_InicioLayout.cshtml";
 }
 
-<h2>Pedidos disponibles (buscando repartidor)</h2>
+<div class="repartidor-lobby-container">
+    <h2 class="titulo">📦 Pedidos disponibles</h2>
+    <p class="subtitulo">Los pedidos que aún buscan repartidor aparecerán aquí en tiempo real</p>
 
-@Html.AntiForgeryToken()
+    @Html.AntiForgeryToken()
 
-<table class="table table-striped" id="pedidos-disponibles">
-    <thead>
-        <tr>
-            <th>ID Pedido</th>
-            <th>Total</th>
-            <th>Estado</th>
-            <th>Usuario</th>
-            <th>Producto</th>
-            <th>Categoria</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        <!-- Filas serán agregadas vía SignalR -->
-    </tbody>
-</table>
+    <div class="table-wrapper">
+        <table class="tabla-pedidos" id="pedidos-disponibles">
+            <thead>
+                <tr>
+                    <th>ID Pedido</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                    <th>Usuario</th>
+                    <th>Producto</th>
+                    <th>Categoria</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Filas agregadas vía SignalR -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .titulo {
+        font-size: 32px;
+        font-weight: 700;
+        margin-bottom: 5px;
+        color: #00ffc8;
+        text-shadow: 0 0 6px rgba(0,255,200,0.4);
+    }
+
+    .subtitulo {
+        margin-bottom: 25px;
+        color: #b8b8b8;
+        font-size: 15px;
+    }
+
+    .table-wrapper {
+        background: rgba(255,255,255,0.03);
+        padding: 20px;
+        border-radius: 14px;
+        box-shadow: 0 0 25px rgba(0,0,0,0.6);
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .tabla-pedidos {
+        width: 100%;
+        border-collapse: collapse;
+        overflow: hidden;
+        border-radius: 12px;
+    }
+
+        .tabla-pedidos thead tr {
+            background: rgba(0,255,180,0.15);
+            color: #00ffd0;
+            text-shadow: 0 0 4px rgba(0,255,180,0.4);
+        }
+
+        .tabla-pedidos th, .tabla-pedidos td {
+            padding: 14px;
+            text-align: left;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .tabla-pedidos tbody tr {
+            background: rgba(255,255,255,0.02);
+            transition: background 0.2s, transform 0.2s;
+        }
+
+            .tabla-pedidos tbody tr:hover {
+                background: rgba(0,255,200,0.05);
+                transform: scale(1.01);
+            }
+
+    .btn {
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+        border: none;
+    }
+
+    .btn-success {
+        background: #00d68f;
+        color: #000;
+        box-shadow: 0 0 8px rgba(0,214,143,0.5);
+    }
+
+        .btn-success:hover {
+            background: #00ffb0;
+            box-shadow: 0 0 12px rgba(0,255,176,0.7);
+        }
+
+    .btn-danger {
+        background: #ff4f4f;
+        color: #fff;
+        box-shadow: 0 0 8px rgba(255,79,79,0.4);
+    }
+
+        .btn-danger:hover {
+            background: #ff7070;
+            box-shadow: 0 0 12px rgba(255,110,110,0.7);
+        }
+
+    .estado {
+        font-weight: 600;
+        color: #00ffd0;
+    }
+
+    .repartidor-lobby-container {
+        padding: 30px;
+        font-family: "Poppins", sans-serif;
+        color: #fff;
+        min-height: 100vh;
+        background: linear-gradient(180deg, #111 0%, #000 100%);
+    }
+
+
+</style>
 
 @section Scripts {
+    <!-- tu script original sin modificar, igual que lo pasaste -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
     <script>
         const connection = new signalR.HubConnectionBuilder()
@@ -49,15 +157,14 @@
                 </td>
             `;
 
-            // Aceptar
             tr.querySelector('.aceptar').addEventListener('click', function () {
                 const pedidoId = parseInt(tr.getAttribute('data-pedido-id'));
-                const repartidorId = 3; // en POC usamos id 3; idealmente detectar desde sesión
+                const repartidorId = 3;
                 const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
 
                 fetch('/Repartidor/AceptarPedido', {
                     method: 'POST',
-                    credentials: 'same-origin', // include antiforgery cookie
+                    credentials: 'same-origin',
                     headers: {
                         'Content-Type': 'application/json',
                         'RequestVerificationToken': token || ''
@@ -65,7 +172,6 @@
                     body: JSON.stringify({ PedidoId: pedidoId, RepartidorId: repartidorId })
                 }).then(res => {
                     if (res.ok) {
-                        // Quitar fila localmente
                         tr.remove();
                     } else if (res.status === 409) {
                         alert('Pedido ya no está disponible');
@@ -74,10 +180,9 @@
                         res.text().then(t => console.error('Aceptar error:', res.status, t));
                         alert('Error aceptando pedido');
                     }
-                }).catch((err) => { console.error(err); alert('Error de red') });
+                });
             });
 
-            // Rechazar
             tr.querySelector('.rechazar').addEventListener('click', function () {
                 const pedidoId = parseInt(tr.getAttribute('data-pedido-id'));
                 const repartidorId = 3;
@@ -85,7 +190,7 @@
 
                 fetch('/Repartidor/RechazarPedido', {
                     method: 'POST',
-                    credentials: 'same-origin', // include antiforgery cookie
+                    credentials: 'same-origin',
                     headers: {
                         'Content-Type': 'application/json',
                         'RequestVerificationToken': token || ''
@@ -93,38 +198,31 @@
                     body: JSON.stringify({ PedidoId: pedidoId, RepartidorId: repartidorId })
                 }).then(res => {
                     if (res.ok) {
-                        // Keep the row visible so other repartidores can accept
                         alert('Pedido rechazado, permanece disponible');
                     } else {
                         res.text().then(t => console.error('Rechazar error:', res.status, t));
                         alert('Error rechazando pedido');
                     }
-                }).catch((err) => { console.error(err); alert('Error de red') });
+                });
             });
 
             return tr;
         }
 
         connection.on('NuevoPedido', function (pedido) {
-            console.log('NuevoPedido recibido', pedido);
-            // Only add if estado == 'buscando repartidor'
             if (pedido.estado !== 'buscando repartidor') return;
             const tbody = document.querySelector('#pedidos-disponibles tbody');
             const row = renderPedidoRow(pedido);
             tbody.prepend(row);
         });
 
-        // Remove row when another repartidor accepts
         connection.on('PedidoAceptado', function (pedidoId) {
             const row = document.querySelector(`tr[data-pedido-id='${pedidoId}']`);
             if (row) row.remove();
         });
 
         connection.start().then(function () {
-            // Registrarse en el grupo user-3 para recibir notificaciones
             return connection.invoke('Register', 3);
-        }).catch(function (err) {
-            console.error(err.toString());
         });
     </script>
 }

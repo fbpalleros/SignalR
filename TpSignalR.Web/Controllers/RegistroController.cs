@@ -21,6 +21,7 @@ namespace TpSignalR.Web.Controllers
             // Guardamos nombre y id en session. No es necesario serializar a JSON para esto.
             HttpContext.Session.SetString("NombreUsuario", usuario.Nombre);
             HttpContext.Session.SetInt32("UsuarioId", usuario.Id);
+            TempData["UserId"] = userId;
             return RedirectToAction("LogInCookie");
         }
 

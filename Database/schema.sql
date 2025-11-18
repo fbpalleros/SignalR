@@ -11,7 +11,6 @@ BEGIN
 END
 
 GO
-
 -- Create database if it doesn't exist
 IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'SignalRDB')
 BEGIN
