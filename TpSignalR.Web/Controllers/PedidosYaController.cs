@@ -142,12 +142,12 @@ namespace TpSignalR.Web.Controllers
                     }
 
                     // Repartidor: Tienes un pedido nuevo para entregar
-                    foreach (var rid in repartidorIds)
-                    {
-                        var payload = new { role = "repartidor", title = "Nuevo pedido", message = $"Tienes un pedido nuevo para entregar" };
-                        _ = _hubContext.Clients.Group($"user-{rid}").SendAsync("Notify", payload)
-                            .ContinueWith(t => { if (t.IsFaulted) System.Console.WriteLine($"❌ Notify error user-{rid}: {t.Exception?.GetBaseException().Message}"); }, System.Threading.Tasks.TaskContinuationOptions.OnlyOnFaulted);
-                    }
+                    //foreach (var rid in repartidorIds)
+                    //{
+                    //    var payload = new { role = "repartidor", title = "Nuevo pedido", message = $"Tienes un pedido nuevo para entregar" };
+                    //    _ = _hubContext.Clients.Group($"user-{rid}").SendAsync("Notify", payload)
+                    //        .ContinueWith(t => { if (t.IsFaulted) System.Console.WriteLine($"❌ Notify error user-{rid}: {t.Exception?.GetBaseException().Message}"); }, System.Threading.Tasks.TaskContinuationOptions.OnlyOnFaulted);
+                    //}
 
                     // Cliente: notify only the session user who created the pedido (structured payload)
                     var clientPayload = new { role = "cliente", title = "Pedido", message = $"Su pedido \"{productName}\" esta en preparacion", PedidoId = pedido.PedidoId };
