@@ -175,6 +175,14 @@ namespace TpSignalR.Web.Controllers
                 };
 
                 await _hubContext.Clients.Group($"user-3").SendAsync("NuevoPedido", payload);
+
+                // Notificar a repartidores (mismo comportamiento que el snippet movido desde PedidosYaController)
+                var repartidorIds = new[] { 3, 5 };
+                foreach (var rid in repartidorIds)
+                {
+                    // Enviar notificación estructurada al repartidor
+                    SendNotify(rid, "repartidor", "Tienes un pedido nuevo para entregar", "Nuevo pedido");
+                }
             }
 
             // Return updated DTO to caller so client can refresh UI

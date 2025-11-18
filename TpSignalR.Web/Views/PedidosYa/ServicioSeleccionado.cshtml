@@ -141,6 +141,8 @@
         <input type="text" placeholder="Buscar locales o productos..." />
     </div>
 
+
+    @Html.AntiForgeryToken()
     <div class="productos-grid">
         @if (Model != null && Model.Any())
         {
@@ -173,7 +175,6 @@
                             <p class="precio">@producto.Precio.ToString("C0")</p>
                         </div>
 
-                        @Html.AntiForgeryToken()
                         <button type="button"
                                 onclick="enviarPedido(@producto.Id)"
                                 class="btn-comprar">

@@ -1,11 +1,19 @@
 using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Threading.Tasks;
+using TpSignalR.Logica;
 
 namespace TpSignalR.Web.Hubs
 {
     public class NotificationHub : Hub
     {
+        private readonly IPedidosYaLogica _pedidosLogica;
+
+        public NotificationHub(IPedidosYaLogica pedidosLogica)
+        {
+            _pedidosLogica = pedidosLogica;
+        }
+
         public async Task Register(int userId)
         {
             // Si la conexión ya estaba asociada a otro usuario, la removemos del grupo anterior
@@ -19,58 +27,55 @@ namespace TpSignalR.Web.Hubs
             NotificationConnectionStore.Add(Context.ConnectionId, userId);
             var groupName = GetGroupName(userId);
             await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
+
+            Console.WriteLine($"NotificationHub: Connection {Context.ConnectionId} added to group {groupName}");
+
+            // After registering, send current 'buscando repartidor' pedidos for this comercio (if any)
+            try
+            {
+                // Obtener pedidos del comercio (userId may represent comercio id in this app)
+                var pedidos = _pedidosLogica.ObtenerPedidosPorComercio(userId);
+                if (pedidos != null)
+                {
+                    foreach (var p in pedidos)
+                    {
+                        // Only send pedidos that are in 'buscando repartidor' state
+                        if (string.Equals(p.Estado, "buscando repartidor", System.StringComparison.OrdinalIgnoreCase))
+                        {
+                            var payload = new
+                            {
+                                PedidoId = p.PedidoId,
+                                Total = p.Total,
+                                Estado = p.Estado,
+                                UsuarioFinalId = p.UsuarioFinalId,
+                                ProductoId = p.ProductoId,
+                                ProductoNombre = p.ProductoNombre,
+                                ProductoCategoria = p.ProductoCategoria,
+                                ComercioId = p.ComercioId
+                            };
+
+                            await Clients.Caller.SendAsync("NuevoPedido", payload);
+                        }
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine($"NotificationHub: error while sending existing pedidos to caller: {ex.Message}");
+            }
         }
 
         public async Task Unregister(int userId)
         {
             var groupName = GetGroupName(userId);
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
+            Console.WriteLine($"NotificationHub: Connection {Context.ConnectionId} removed from group {groupName}");
             NotificationConnectionStore.Remove(Context.ConnectionId);
         }
 
-        /// <summary>
-        /// Permite a un cliente unirse a un grupo específico para un pedido (por ejemplo "pedido-123").
-        /// El frontend invoca connection.invoke('UnirseAPedido', pedidoId)
-        /// </summary>
-        /// <param name="pedidoId"></param>
-        public async Task UnirseAPedido(int pedidoId)
-        {
-            try
-            {
-                var groupName = GetPedidoGroupName(pedidoId);
-                await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
-                // opcional: log
-                System.Console.WriteLine($"[NotificationHub] Conexión {Context.ConnectionId} unida al grupo {groupName}");
-            }
-            catch (Exception ex)
-            {
-                System.Console.WriteLine($"[NotificationHub] Error UnirseAPedido: {ex.Message}");
-                throw;
-            }
-        }
-
-        /// <summary>
-        /// Permite a un cliente salir del grupo pedido
-        /// </summary>
-        public async Task SalirDelPedido(int pedidoId)
-        {
-            try
-            {
-                var groupName = GetPedidoGroupName(pedidoId);
-                await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
-                System.Console.WriteLine($"[NotificationHub] Conexión {Context.ConnectionId} removida del grupo {groupName}");
-            }
-            catch (Exception ex)
-            {
-                System.Console.WriteLine($"[NotificationHub] Error SalirDelPedido: {ex.Message}");
-                throw;
-            }
-        }
-
         private string GetGroupName(int userId) => $"user-{userId}";
-        private string GetPedidoGroupName(int pedidoId) => $"pedido-{pedidoId}";
 
-        public override async Task OnDisconnectedAsync(Exception exception)
+        public override async Task OnDisconnectedAsync(System.Exception exception)
         {
             if (NotificationConnectionStore.TryGetUserForConnection(Context.ConnectionId, out var userId))
             {
@@ -79,6 +84,7 @@ namespace TpSignalR.Web.Hubs
                 NotificationConnectionStore.Remove(Context.ConnectionId);
             }
 
+            Console.WriteLine($"NotificationHub: Connection {Context.ConnectionId} disconnected. Exception: {exception?.Message}");
             await base.OnDisconnectedAsync(exception);
         }
     }
