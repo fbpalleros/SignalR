@@ -160,10 +160,9 @@
     // === FUNCIÓN PARA AGREGAR FILAS AL HISTORIAL ===
     function agregarPedidoFila(pedido) {
         const tbody = document.getElementById("historialPedidosBody");
-        const row = document.createElement("tr");
-        row.setAttribute("data-id", pedido.id);
-
-        row.innerHTML = `
+        // Evitar duplicados: si ya existe una fila con este ID, actualizarla en lugar de agregar otra
+        const existingRow = document.querySelector(`tr[data-id='${pedido.id}']`);
+        const rowContent = `
             <td>${pedido.id}</td>
             <td>${pedido.cliente}</td>
             <td class="estado ${pedido.estado === 'Listo' ? 'estado-listo' : 'estado-proceso'}">${pedido.estado}</td>
@@ -174,19 +173,42 @@
                     : `<span>✅ Listo</span>`}
             </td>
         `;
+
+        if (existingRow) {
+            // Actualizar contenido y mover la fila al tope (último en entrar -> primero en la lista)
+            existingRow.innerHTML = rowContent;
+            tbody.prepend(existingRow);
+            return;
+        }
+
+        const row = document.createElement("tr");
+        row.setAttribute("data-id", pedido.id);
+        row.innerHTML = rowContent;
+        // Agregar al inicio para que los más recientes estén primero (cola LIFO según requisito)
         tbody.prepend(row);
     }
 
     // === FUNCIÓN PARA CAMBIAR EL ESTADO A "LISTO" ===
     function cambiarEstado(id) {
-        if (connection.state !== "Connected") {
-            alert("Esperá un segundo... la conexión con el servidor no está lista.");
-            return;
-        }
+        const tbody = document.getElementById("historialPedidosBody");
+        const row = document.querySelector(`tr[data-id='${id}']`);
+        if (!row) return;
+        const estadoCell = row.querySelector(".estado");
 
+        // Cambia visualmente el estado
+        estadoCell.innerText = "Listo";
+        estadoCell.classList.remove("estado-proceso");
+        estadoCell.classList.add("estado-listo");
+        row.lastElementChild.innerHTML = "<span>✅ Listo</span>";
+
+        // Mover la fila al inicio: último en entrar debería mostrarse primero
+        tbody.prepend(row);
+
+        // Avisar al servidor (SignalR)
         connection.invoke("CambiarEstadoPedido", id, "Listo")
             .then(() => {
                 console.log(`🟢 Pedido ${id} marcado como listo`);
+                // Redirigir después del cambio
                 window.location.href = `/Comercio/DetallePedido/${id}`;
             })
             .catch(err => console.error(err));
@@ -206,25 +228,4 @@
     document.getElementById("totalPedidos").innerText = pedidosIniciales.length;
     document.getElementById("pedidosEnProceso").innerText = pedidosIniciales.filter(p => p.estado === "En proceso").length;
     document.getElementById("ventasDelDia").innerText = `$${pedidosIniciales.reduce((a, b) => a + b.total, 0).toFixed(2)}`;
-
-    function cambiarEstado(id) {
-        const row = document.querySelector(`tr[data-id='${id}']`);
-        const estadoCell = row.querySelector(".estado");
-
-        // Cambia visualmente el estado
-        estadoCell.innerText = "Listo";
-        estadoCell.classList.remove("estado-proceso");
-        estadoCell.classList.add("estado-listo");
-        row.lastElementChild.innerHTML = "<span>✅ Listo</span>";
-
-        // Avisar al servidor (SignalR)
-        connection.invoke("CambiarEstadoPedido", id, "Listo")
-            .then(() => {
-                console.log(`🟢 Pedido ${id} marcado como listo`);
-                // Redirigir después del cambio
-                window.location.href = `/Comercio/DetallePedido/${id}`;
-            })
-            .catch(err => console.error(err));
-    }
-
 </script>
